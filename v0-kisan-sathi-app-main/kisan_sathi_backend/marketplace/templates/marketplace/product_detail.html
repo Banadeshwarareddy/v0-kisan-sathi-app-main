@@ -1,0 +1,318 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Product Details - Kisan Marketplace{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 0;">
+    <div id="product-detail-container">
+        <!-- Loading -->
+        <div style="text-align: center; padding: 4rem;">
+            <div class="spinner"></div>
+            <p style="margin-top: 1rem; color: var(--text-secondary);">Loading product...</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.product-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.image-gallery {
+    position: sticky;
+    top: 100px;
+}
+
+.main-image {
+    width: 100%;
+    height: 500px;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+}
+
+.thumbnail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.thumbnail {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.thumbnail:hover, .thumbnail.active {
+    border-color: var(--primary-color);
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.quantity-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: all 0.3s;
+}
+
+.quantity-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.quantity-input {
+    width: 80px;
+    text-align: center;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.reviews-section {
+    margin-top: 3rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.review-card {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .product-detail-grid {
+        grid-template-columns: 1fr;
+    }
+    .image-gallery {
+        position: static;
+    }
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const productId = '{{ product_id }}';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadProductDetail();
+});
+
+async function loadProductDetail() {
+    try {
+        const product = await fetchProductDetails(productId);
+        displayProductDetail(product);
+        await loadReviews();
+    } catch (error) {
+        document.getElementById('product-detail-container').innerHTML = `
+            <div style="text-align: center; padding: 4rem;">
+                <h2>Product not found</h2>
+                <p style="color: var(--text-secondary); margin: 1rem 0;">The product you're looking for doesn't exist.</p>
+                <a href="/marketplace/products/" class="btn btn-primary">Browse Products</a>
+            </div>
+        `;
+    }
+}
+
+function displayProductDetail(product) {
+    const discount = calculateDiscount(product.original_price, product.price_per_unit);
+    const container = document.getElementById('product-detail-container');
+    
+    container.innerHTML = `
+        <div class="product-detail-grid">
+            <div class="image-gallery">
+                <img src="${product.primary_image_url || getPlaceholderImage(product.name)}" 
+                     alt="${product.name}" 
+                     class="main-image" 
+                     id="main-image"
+                     onerror="handleImageError(this)">
+            </div>
+            
+            <div>
+                <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">${product.category?.name || 'Crops'}</div>
+                <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">${product.name}</h1>
+                
+                ${product.rating > 0 ? `
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <span class="stars" style="font-size: 1.25rem;">${formatStars(product.rating)}</span>
+                        <span style="color: var(--text-secondary);">${product.review_count} reviews</span>
+                    </div>
+                ` : ''}
+                
+                <div style="display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem;">
+                    <span style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color);">${formatPrice(product.price_per_unit)}</span>
+                    ${product.original_price && discount > 0 ? `
+                        <span style="font-size: 1.5rem; color: var(--text-secondary); text-decoration: line-through;">${formatPrice(product.original_price)}</span>
+                        <span class="discount-badge" style="font-size: 1rem;">${discount}% OFF</span>
+                    ` : ''}
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+                    ${product.is_organic_certified ? '<span class="badge-organic">🌱 Organic Certified</span>' : ''}
+                    ${product.quality_grade === 'premium' ? '<span class="badge-certified">⭐ Premium Quality</span>' : ''}
+                    ${product.is_fssai_approved ? '<span class="badge-certified">✓ FSSAI Approved</span>' : ''}
+                </div>
+                
+                <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div>
+                            <div style="color: var(--text-secondary); font-size: 0.875rem;">Farmer</div>
+                            <div style="font-weight: 600;">${product.farmer?.farm_name || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--text-secondary); font-size: 0.875rem;">Location</div>
+                            <div style="font-weight: 600;">${product.farmer?.district || 'N/A'}, ${product.farmer?.state || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--text-secondary); font-size: 0.875rem;">Available</div>
+                            <div style="font-weight: 600; color: ${product.quantity_available > 0 ? 'var(--success-color)' : 'var(--danger-color)'};">
+                                ${product.quantity_available > 0 ? `${product.quantity_available} ${product.unit}` : 'Out of Stock'}
+                            </div>
+                        </div>
+                        <div>
+                            <div style="color: var(--text-secondary); font-size: 0.875rem;">Min Order</div>
+                            <div style="font-weight: 600;">${product.min_order_quantity} ${product.unit}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${product.quantity_available > 0 ? `
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="decreaseQuantity()">−</button>
+                        <input type="number" id="quantity" value="${product.min_order_quantity}" min="${product.min_order_quantity}" class="quantity-input">
+                        <button class="quantity-btn" onclick="increaseQuantity()">+</button>
+                        <span style="color: var(--text-secondary);">${product.unit}</span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-primary btn-lg" style="flex: 1;" onclick="addToCartWithQuantity()">
+                            Add to Cart
+                        </button>
+                        <button class="btn btn-outline btn-lg" onclick="addToWishlistAction()">
+                            ♡ Wishlist
+                        </button>
+                    </div>
+                ` : `
+                    <button class="btn btn-lg" disabled style="width: 100%; background: var(--text-secondary);">
+                        Out of Stock
+                    </button>
+                `}
+                
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                    <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">Description</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.8;">${product.description || 'No description available.'}</p>
+                    
+                    ${product.specifications && Object.keys(product.specifications).length > 0 ? `
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin: 2rem 0 1rem;">Specifications</h3>
+                        <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius-md);">
+                            ${Object.entries(product.specifications).map(([key, value]) => `
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                                    <span style="color: var(--text-secondary);">${key}</span>
+                                    <span style="font-weight: 600;">${value}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+        
+        <div class="reviews-section">
+            <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">Customer Reviews</h2>
+            <div id="reviews-container"></div>
+        </div>
+    `;
+}
+
+async function loadReviews() {
+    try {
+        const reviews = await fetchProductReviews(productId);
+        const container = document.getElementById('reviews-container');
+        
+        if (reviews && reviews.length > 0) {
+            container.innerHTML = reviews.map(review => `
+                <div class="review-card">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <div>
+                            <div style="font-weight: 600;">${review.buyer_name}</div>
+                            <div class="stars">${formatStars(review.rating)}</div>
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 0.875rem;">${formatDate(review.created_at)}</div>
+                    </div>
+                    ${review.title ? `<div style="font-weight: 600; margin-bottom: 0.5rem;">${review.title}</div>` : ''}
+                    <p style="color: var(--text-secondary);">${review.review_text}</p>
+                    ${review.is_verified_purchase ? '<span style="color: var(--success-color); font-size: 0.875rem;">✓ Verified Purchase</span>' : ''}
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p style="color: var(--text-secondary);">No reviews yet. Be the first to review!</p>';
+        }
+    } catch (error) {
+        console.error('Error loading reviews:', error);
+    }
+}
+
+function increaseQuantity() {
+    const input = document.getElementById('quantity');
+    input.value = parseInt(input.value) + 1;
+}
+
+function decreaseQuantity() {
+    const input = document.getElementById('quantity');
+    const min = parseInt(input.min);
+    if (parseInt(input.value) > min) {
+        input.value = parseInt(input.value) - 1;
+    }
+}
+
+async function addToCartWithQuantity() {
+    const quantity = parseInt(document.getElementById('quantity').value);
+    try {
+        showLoading();
+        await addToCart(productId, quantity);
+        hideLoading();
+        showToast('Added to cart!', 'success');
+        updateCartCount();
+    } catch (error) {
+        hideLoading();
+        showToast('Failed to add to cart', 'error');
+    }
+}
+
+async function addToWishlistAction() {
+    try {
+        showLoading();
+        await addToWishlist(productId);
+        hideLoading();
+        showToast('Added to wishlist!', 'success');
+    } catch (error) {
+        hideLoading();
+        showToast('Failed to add to wishlist', 'error');
+    }
+}
+</script>
+{% endblock %}

@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils import timezone
 from .models import Farmer
 from .serializers import FarmerRegistrationSerializer, LoginSerializer, FarmerProfileSerializer
@@ -9,6 +9,8 @@ from .utils import generate_otp, send_otp_sms, send_otp_email, verify_otp
 
 
 class SignupAPIView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         serializer = FarmerRegistrationSerializer(data=request.data)
 
@@ -27,6 +29,8 @@ class SignupAPIView(APIView):
 
 
 class VerifyOTPView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         phone = request.data.get('phone')
         otp = request.data.get('otp')
@@ -60,6 +64,8 @@ class VerifyOTPView(APIView):
 
 
 class LoginAPIView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
 
@@ -67,21 +73,19 @@ class LoginAPIView(APIView):
             data = serializer.validated_data
             farmer = data['farmer']
 
+            # Return complete farmer profile using serializer
+            profile_serializer = FarmerProfileSerializer(farmer)
+            farmer_data = profile_serializer.data
+            # Add computed name field for compatibility
+            farmer_data['name'] = f"{farmer.first_name} {farmer.last_name}".strip()
+            
             return Response({
                 'success': True,
                 'message': 'Login successful',
                 'data': {
                     'access_token': data['access_token'],
                     'refresh_token': data['refresh_token'],
-                    'farmer': {
-                        'id': farmer.id,
-                        'name': f"{farmer.first_name} {farmer.last_name}",
-                        'phone': str(farmer.phone),
-                        'email': farmer.email,
-                        'district': farmer.district,
-                        'village': farmer.village,
-                        'preferred_language': farmer.preferred_language
-                    }
+                    'farmer': farmer_data
                 }
             })
 

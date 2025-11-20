@@ -3,11 +3,14 @@
 import type React from "react"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ProtectedRoute } from "@/components/protected-route"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardNav } from "@/components/dashboard-nav"
+import { 
+  Upload, Camera, X, CheckCircle2, Sparkles, AlertCircle, Info, Leaf, Download, Volume2
+} from "lucide-react"
 
 interface BilingualText {
   en: string
@@ -316,47 +319,98 @@ function CropDoctorContent() {
       <DashboardNav />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <h2 className="text-3xl font-bold text-foreground mb-2">AI Crop Doctor</h2>
-        <p className="text-muted-foreground mb-8">
-          Upload a photo of your crop to identify diseases and get treatment advice
-        </p>
+        {/* Hero Section with Gradient */}
+        <div className="relative mb-8 p-8 rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-100 dark:from-amber-950 dark:via-orange-950 dark:to-yellow-900 overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-200 dark:bg-orange-800 rounded-full blur-3xl opacity-30 -mr-32 -mt-32"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-yellow-200 dark:bg-yellow-800 rounded-full blur-3xl opacity-20 -ml-24 -mb-24"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg">
+                <Leaf className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-4xl font-bold text-foreground">AI Crop Detector</h2>
+            </div>
+            <p className="text-lg text-muted-foreground max-w-2xl">
+              Upload photos of your crops to instantly identify diseases and receive expert treatment recommendations powered by AI
+            </p>
+            <div className="flex flex-wrap gap-4 mt-4">
+              <div className="flex items-center gap-2 text-sm text-orange-700 dark:text-orange-300">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Instant Results</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-orange-700 dark:text-orange-300">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Scientific Analysis</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-orange-700 dark:text-orange-300">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Expert Recommendations</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-orange-700 dark:text-orange-300">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>PDF & Audio Reports</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Upload Section */}
           <div>
-            <Card className="p-8">
-              <h3 className="text-xl font-bold text-foreground mb-6">Upload Crop Images</h3>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-foreground">Select Crop Type</label>
-                <select
-                  value={cropType}
-                  onChange={(e) => setCropType(e.target.value)}
-                  className="w-full border rounded px-3 py-2 bg-background text-foreground"
-                >
-                  <option value="">Choose crop (improves accuracy)</option>
-                  <option value="Tomato">Tomato</option>
-                  <option value="Potato">Potato</option>
-                  <option value="Rice">Rice</option>
-                  <option value="Wheat">Wheat</option>
-                  <option value="Maize">Maize</option>
-                  <option value="Cotton">Cotton</option>
-                  <option value="__custom__">Other (type manually)</option>
-                </select>
-                {cropType === "__custom__" && (
-                  <input
-                    type="text"
-                    value={customCrop}
-                    onChange={(e) => setCustomCrop(e.target.value)}
-                    placeholder="Enter crop name"
-                    className="mt-2 w-full border rounded px-3 py-2 bg-background text-foreground"
-                  />)
-                }
-                <div className="mt-2 flex items-center gap-2">
-                  <label className="text-sm text-foreground">Result Language</label>
-                  <select value={language} onChange={(e) => setLanguage(e.target.value as any)} className="border rounded px-2 py-1 bg-background text-foreground">
-                    <option value="en">English</option>
-                    <option value="kn">Kannada</option>
+            <Card className="shadow-lg border-2 hover:shadow-xl transition-shadow duration-300">
+              <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950 dark:to-amber-950">
+                <CardTitle className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-600 rounded-lg">
+                    <Upload className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-xl">Upload Crop Images</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+              <div className="mb-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-foreground flex items-center gap-2">
+                    <Leaf className="w-4 h-4 text-green-600" />
+                    Select Crop Type
+                  </label>
+                  <select
+                    value={cropType}
+                    onChange={(e) => setCropType(e.target.value)}
+                    className="w-full border-2 rounded-lg px-4 py-3 bg-background text-foreground focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                  >
+                    <option value="">Choose crop (improves accuracy)</option>
+                    <option value="Tomato">🍅 Tomato</option>
+                    <option value="Potato">🥔 Potato</option>
+                    <option value="Rice">🌾 Rice</option>
+                    <option value="Wheat">🌾 Wheat</option>
+                    <option value="Maize">🌽 Maize</option>
+                    <option value="Cotton">☁️ Cotton</option>
+                    <option value="__custom__">✏️ Other (type manually)</option>
+                  </select>
+                  {cropType === "__custom__" && (
+                    <input
+                      type="text"
+                      value={customCrop}
+                      onChange={(e) => setCustomCrop(e.target.value)}
+                      placeholder="Enter crop name"
+                      className="mt-3 w-full border-2 rounded-lg px-4 py-3 bg-background text-foreground focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                    />
+                  )}
+                </div>
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 rounded-lg">
+                  <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                    </svg>
+                    Result Language
+                  </label>
+                  <select 
+                    value={language} 
+                    onChange={(e) => setLanguage(e.target.value as any)} 
+                    className="border-2 rounded-lg px-4 py-2 bg-background text-foreground font-medium focus:ring-2 focus:ring-blue-500 transition-all"
+                  >
+                    <option value="en">🇬🇧 English</option>
+                    <option value="kn">🇮🇳 ಕನ್ನಡ</option>
                   </select>
                 </div>
               </div>
@@ -366,14 +420,35 @@ function CropDoctorContent() {
                   onDragOver={onDragOver}
                   onDragLeave={onDragLeave}
                   onDrop={onDrop}
-                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                    isDragging ? "border-primary bg-muted" : "border-border"
+                  className={`relative border-3 border-dashed rounded-2xl p-8 text-center transition-all duration-300 ${
+                    isDragging 
+                      ? "border-green-500 bg-green-50 dark:bg-green-950 scale-105 shadow-lg" 
+                      : "border-gray-300 dark:border-gray-700 hover:border-green-400 hover:bg-green-50/50 dark:hover:bg-green-950/50"
                   } ${canAddMore ? "cursor-pointer" : "opacity-60 cursor-not-allowed"}`}
                   onClick={() => canAddMore && inputRef.current?.click()}
                 >
-                  <div className="text-4xl mb-2">📸</div>
-                  <p className="font-semibold text-foreground mb-1">Drag & drop or click to upload</p>
-                  <p className="text-sm text-muted-foreground">PNG, JPG • up to 5 images</p>
+                  <div className="relative">
+                    <div className={`text-6xl mb-4 transition-transform duration-300 ${isDragging ? "scale-110" : ""}`}>
+                      {isDragging ? "📥" : "📸"}
+                    </div>
+                    <p className="text-xl font-bold text-foreground mb-2">
+                      {isDragging ? "Drop your images here!" : "Drag & drop or click to upload"}
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      PNG, JPG, JPEG • Maximum 5 images • Up to 10MB each
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <div className="px-3 py-1 bg-blue-100 dark:bg-blue-900 rounded-full text-xs font-medium text-blue-700 dark:text-blue-300">
+                        High Quality
+                      </div>
+                      <div className="px-3 py-1 bg-green-100 dark:bg-green-900 rounded-full text-xs font-medium text-green-700 dark:text-green-300">
+                        Fast Analysis
+                      </div>
+                      <div className="px-3 py-1 bg-purple-100 dark:bg-purple-900 rounded-full text-xs font-medium text-purple-700 dark:text-purple-300">
+                        Secure
+                      </div>
+                    </div>
+                  </div>
                   <input
                     ref={inputRef}
                     type="file"
@@ -447,225 +522,242 @@ function CropDoctorContent() {
               )}
 
               <div className="flex gap-3">
-                <Button onClick={analyzeAll} disabled={!canAnalyze} className="h-12 text-base font-semibold flex-1">
-                  Analyze All
+                <Button 
+                  onClick={analyzeAll} 
+                  disabled={!canAnalyze} 
+                  className="h-14 text-base font-bold flex-1 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {canAnalyze ? (
+                    <>
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      Analyze All Images
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-5 h-5 mr-2" />
+                      Upload Images First
+                    </>
+                  )}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => inputRef.current?.click()}
                   disabled={!canAddMore}
-                  className="h-12 text-base font-semibold"
+                  className="h-14 text-base font-semibold border-2 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all"
                 >
+                  <Upload className="w-5 h-5 mr-2" />
                   Add More
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => cameraInputRef.current?.click()}
-                  className="h-12 text-base font-semibold"
+                  className="h-14 text-base font-semibold border-2 hover:bg-purple-50 dark:hover:bg-purple-950 transition-all"
                 >
-                  Take Photo
+                  <Camera className="w-5 h-5 mr-2" />
+                  Camera
                 </Button>
               </div>
 
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                <p className="text-sm text-foreground">
-                  <strong>Tip:</strong> Clear, close-up images of affected areas improve accuracy.
-                </p>
+              <div className="mt-6 p-5 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 rounded-xl border-2 border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-600 rounded-lg flex-shrink-0">
+                    <Info className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground mb-1">Pro Tips for Best Results:</p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Take clear, well-lit photos of affected plant parts</li>
+                      <li>• Focus on diseased leaves, stems, or fruits</li>
+                      <li>• Avoid blurry or dark images</li>
+                      <li>• Multiple angles help improve accuracy</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
+              </CardContent>
             </Card>
           </div>
 
           {/* Results Section */}
-          <div>
-            {analyzedItems.length > 0 ? (
-              <div className="space-y-6">
-                {/* Compare Area */}
-                <Card className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-lg font-semibold text-foreground">Compare Images</h4>
-                    <span className="text-sm text-muted-foreground">Select up to 2 analyzed images</span>
-                  </div>
-                  {compareIds.length === 2 ? (
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {compareIds.map((id) => {
-                        const it = items.find((x) => x.id === id)
-                        if (!it || !it.result) return null
-                        return (
-                          <div key={id} className="border rounded-lg p-3">
-                            <img src={it.src} alt={it.name} className="w-full h-48 object-cover rounded" />
-                            <div className="mt-3">
-                              <div className="flex items-center justify-between">
-                                <h5 className="font-semibold text-foreground">{it.result.disease.en}</h5>
-                                <span className="text-sm text-muted-foreground">{it.result.confidence}%</span>
+          <Card className="shadow-lg border-2 hover:shadow-xl transition-shadow duration-300">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2 bg-green-600 rounded-lg">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <span className="text-xl">Analysis Results</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {analyzedItems.length > 0 ? (
+                <div className="space-y-6">
+                  {analyzedItems.map((it) => (
+                    <div key={it.id} className="space-y-4">
+                      {/* Image Preview */}
+                      <div className="relative group">
+                        <img 
+                          src={it.src} 
+                          alt={it.name} 
+                          className="w-full h-64 object-cover rounded-xl shadow-md"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      </div>
+
+                      {it.result && (
+                        <>
+                          {/* Disease Info Cards */}
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-900 p-4 rounded-xl border-2 border-green-200 dark:border-green-800 hover:shadow-lg transition-shadow">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Leaf className="w-4 h-4 text-green-600" />
+                                <p className="text-xs font-medium text-muted-foreground">Disease</p>
                               </div>
-                              <span
-                                className={`inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                  it.result.severity === "high"
-                                    ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-                                    : it.result.severity === "medium"
-                                      ? "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
-                                      : "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                                }`}
-                              >
-                                {it.result.severity.charAt(0).toUpperCase() + it.result.severity.slice(1)} Severity
-                              </span>
-                              <p className="mt-2 text-sm text-muted-foreground line-clamp-3">{it.result.cause.en}</p>
+                              <p className="text-lg font-bold text-foreground">{it.result.disease.en}</p>
+                            </div>
+                            <div className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-950 dark:to-cyan-900 p-4 rounded-xl border-2 border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
+                              <div className="flex items-center gap-2 mb-2">
+                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p className="text-xs font-medium text-muted-foreground">Cause</p>
+                              </div>
+                              <p className="text-sm text-foreground line-clamp-2">{language === "kn" ? it.result.cause.kn : it.result.cause.en}</p>
+                            </div>
+                            <div className="bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-950 dark:to-amber-900 p-4 rounded-xl border-2 border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-shadow">
+                              <div className="flex items-center gap-2 mb-2">
+                                <svg className="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <p className="text-xs font-medium text-muted-foreground">Confidence</p>
+                              </div>
+                              <p className="text-lg font-bold text-foreground">{it.result.confidence}%</p>
+                            </div>
+                            <div className="bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-950 dark:to-indigo-900 p-4 rounded-xl border-2 border-purple-200 dark:border-purple-800 hover:shadow-lg transition-shadow">
+                              <div className="flex items-center gap-2 mb-2">
+                                <AlertCircle className="w-4 h-4 text-purple-600" />
+                                <p className="text-xs font-medium text-muted-foreground">Severity</p>
+                              </div>
+                              <p className="text-lg font-bold text-foreground">{it.result.severity.charAt(0).toUpperCase() + it.result.severity.slice(1)}</p>
                             </div>
                           </div>
-                        )
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Choose two results from the list below to compare.</p>
-                  )}
-                </Card>
-
-                {/* Results List */}
-                <div className="grid xl:grid-cols-2 gap-6">
-                  {analyzedItems.map((it) => (
-                    <Card key={it.id} className="p-6">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <img src={it.src} alt={it.name} className="w-full h-48 object-cover rounded" />
-                        <div>
-                          {it.result && (
-                            <>
-                              <div className="flex items-center gap-3 mb-2">
-                                <div className="text-2xl">🔬</div>
-                                <div>
-                                  <h3 className="text-xl font-bold text-foreground">{it.result.disease.en}</h3>
-                                  <p className="text-muted-foreground">Confidence: {it.result.confidence}%</p>
-                                </div>
-                              </div>
-                              <span
-                                className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                  it.result.severity === "high"
-                                    ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-                                    : it.result.severity === "medium"
-                                      ? "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300"
-                                      : "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                                }`}
-                              >
-                                {it.result.severity.charAt(0).toUpperCase() + it.result.severity.slice(1)} Severity
-                              </span>
-                              <div className="mt-3">
-                                <h4 className="font-semibold text-foreground mb-1">Cause</h4>
-                                <p className="text-sm text-muted-foreground">{language === "kn" ? it.result.cause.kn : it.result.cause.en}</p>
-                              </div>
-                              <div className="mt-3">
-                                <div className="flex items-center justify-between">
-                                  <h4 className="font-semibold text-foreground mb-2">Recommended Treatment</h4>
-                                  <div className="flex gap-2">
-                                    <Button variant="secondary" size="sm" onClick={() => speakText((it.result.treatment.immediate[language] || []).concat(it.result.treatment.chemical[language] || [], it.result.treatment.organic[language] || []).join(". "), language === "kn" ? "kn-IN" : "en-US")}>🔊 {language.toUpperCase()}</Button>
-                                    <Button variant="outline" size="sm" onClick={() => speakText((it.result.treatment.immediate.en || []).concat(it.result.treatment.chemical.en || [], it.result.treatment.organic.en || []).join(". "), "en-US")}>🔊 EN</Button>
-                                  </div>
-                                </div>
-                                <div className="text-sm text-foreground">
-                                  <div className="font-semibold mt-2">Immediate</div>
-                                  <ul className="list-disc ml-5">
-                                    {(language === "kn" ? it.result.treatment.immediate.kn : it.result.treatment.immediate.en).map((t, idx) => (<li key={"im"+idx}>{t}</li>))}
-                                  </ul>
-                                  <div className="font-semibold mt-2">Chemical</div>
-                                  <ul className="list-disc ml-5">
-                                    {(language === "kn" ? it.result.treatment.chemical.kn : it.result.treatment.chemical.en).map((t, idx) => (<li key={"ch"+idx}>{t}</li>))}
-                                  </ul>
-                                  <div className="font-semibold mt-2">Organic</div>
-                                  <ul className="list-disc ml-5">
-                                    {(language === "kn" ? it.result.treatment.organic.kn : it.result.treatment.organic.en).map((t, idx) => (<li key={"or"+idx}>{t}</li>))}
-                                  </ul>
-                                </div>
-                              </div>
-                              <div className="mt-3">
-                                <h4 className="font-semibold text-foreground mb-2">Prevention</h4>
-                                <ul className="list-disc ml-5 text-sm text-foreground">
-                                  {(language === "kn" ? it.result.prevention.kn : it.result.prevention.en).map((p, idx) => (<li key={"pr"+idx}>{p}</li>))}
+                          {/* Treatment Section */}
+                          <div className="p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-xl border-2 border-green-200 dark:border-green-800 mb-4">
+                            <h4 className="font-bold text-foreground mb-3 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Recommended Treatment
+                            </h4>
+                            <div className="space-y-3">
+                              <div>
+                                <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">IMMEDIATE</p>
+                                <ul className="space-y-1">
+                                  {(language === "kn" ? it.result.treatment.immediate.kn : it.result.treatment.immediate.en).map((t, idx) => (
+                                    <li key={"im"+idx} className="flex items-start gap-2 text-sm">
+                                      <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                      <span className="text-foreground">{t}</span>
+                                    </li>
+                                  ))}
                                 </ul>
                               </div>
-                              <div className="mt-4 flex gap-2">
-                                <Button variant="outline" onClick={() => toggleCompare(it.id)}>
-                                  {compareIds.includes(it.id) ? "Remove from Compare" : "Add to Compare"}
-                                </Button>
-                                <Button onClick={() => saveToHistory(it)}>Save Report</Button>
-                                {analysisId && (
-                                  <a href={`${API_BASE}/api/crop-doctor/report/${analysisId}/`} target="_blank" rel="noreferrer" className="inline-flex"><Button>Download PDF</Button></a>
-                                )}
+                              <div>
+                                <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">CHEMICAL</p>
+                                <ul className="space-y-1">
+                                  {(language === "kn" ? it.result.treatment.chemical.kn : it.result.treatment.chemical.en).map((t, idx) => (
+                                    <li key={"ch"+idx} className="flex items-start gap-2 text-sm">
+                                      <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                                      <span className="text-foreground">{t}</span>
+                                    </li>
+                                  ))}
+                                </ul>
                               </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-
-                {/* Nearby Centers */}
-                <Card className="p-6">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-lg font-semibold text-foreground">Nearby Centers</h4>
-                    <span className="text-sm text-muted-foreground">Help is close by</span>
-                  </div>
-                  <div className="mt-4 space-y-3">
-                    {[{ name: "Krishi Vigyan Kendra", distance: "5.2 km", phone: "08012345678" }, { name: "Agriculture Department Office", distance: "8.7 km", phone: "08087654321" }].map((c, i) => (
-                      <div key={i} className="flex items-center justify-between border rounded p-3">
-                        <div>
-                          <p className="font-semibold text-foreground">{c.name}</p>
-                          <p className="text-sm text-muted-foreground">📍 {c.distance} away</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <a href={`tel:${c.phone}`} className="inline-flex"><Button variant="outline">Call</Button></a>
-                          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name)}`} target="_blank" rel="noreferrer" className="inline-flex"><Button>Directions</Button></a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-
-                {/* History */}
-                {history.length > 0 && (
-                  <Card className="p-6">
-                    <h4 className="text-lg font-semibold text-foreground mb-4">My History</h4>
-                    <div className="grid md:grid-cols-3 gap-4">
-                      {history.map((h) => (
-                        <div key={h.id} className="border rounded-lg overflow-hidden">
-                          <img src={h.src} alt={h.name} className="w-full h-32 object-cover" />
-                          <div className="p-3">
-                            <p className="text-sm text-muted-foreground">{new Date(h.savedAt).toLocaleString()}</p>
-                            <p className="font-semibold text-foreground mt-1">{h.result?.disease}</p>
-                            <div className="mt-2 flex gap-2">
-                              <Button variant="outline" size="sm" onClick={() => speakText(h.result?.treatment?.join(". ") || "")}>🔊</Button>
-                              <Button size="sm" onClick={() => window.print()}>Download</Button>
+                              <div>
+                                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-1">ORGANIC</p>
+                                <ul className="space-y-1">
+                                  {(language === "kn" ? it.result.treatment.organic.kn : it.result.treatment.organic.en).map((t, idx) => (
+                                    <li key={"or"+idx} className="flex items-start gap-2 text-sm">
+                                      <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                                      <span className="text-foreground">{t}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-                )}
-              </div>
-            ) : (
-              <Card className="p-8 text-center">
-                <div className="text-6xl mb-4">🌾</div>
-                <p className="text-muted-foreground">Upload images and run analysis to see results here</p>
-              </Card>
-            )}
-          </div>
-        </div>
 
-        {/* Recent Analyses */}
-        <div className="mt-12">
-          <h3 className="text-xl font-bold text-foreground mb-4">Recent Analyses</h3>
-          <div className="grid md:grid-cols-3 gap-4">
-            {[
-              { disease: "Powdery Mildew", date: "2 days ago", status: "Treated" },
-              { disease: "Leaf Spot", date: "1 week ago", status: "Monitoring" },
-              { disease: "Rust", date: "2 weeks ago", status: "Resolved" },
-            ].map((item, idx) => (
-              <Card key={idx} className="p-4">
-                <p className="font-semibold text-foreground mb-1">{item.disease}</p>
-                <p className="text-sm text-muted-foreground mb-3">{item.date}</p>
-                <span className="text-xs px-2 py-1 bg-muted rounded-full text-foreground">{item.status}</span>
-              </Card>
-            ))}
-          </div>
+                          {/* Key Recommendations Section */}
+                          <div className="p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 rounded-xl border-2 border-amber-200 dark:border-amber-800 mb-4">
+                            <h4 className="font-bold text-foreground mb-3 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              Quick Action Steps
+                            </h4>
+                            <ul className="space-y-2">
+                              {(language === "kn" ? it.result.treatment.immediate.kn : it.result.treatment.immediate.en).slice(0, 3).map((action, idx) => (
+                                <li key={"qa"+idx} className="flex items-start gap-2 text-sm">
+                                  <CheckCircle2 className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                                  <span className="text-foreground font-medium">{action}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Prevention Section */}
+                          <div className="p-5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950 rounded-xl border-2 border-blue-200 dark:border-blue-800 mb-4">
+                            <h4 className="font-bold text-foreground mb-3 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              </svg>
+                              Prevention Tips
+                            </h4>
+                            <ul className="space-y-2">
+                              {(language === "kn" ? it.result.prevention.kn : it.result.prevention.en).map((p, idx) => (
+                                <li key={"pr"+idx} className="flex items-start gap-2 text-sm">
+                                  <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                                  <span className="text-foreground">{p}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-3">
+                            <Button 
+                              onClick={() => saveToHistory(it)}
+                              className="flex-1 h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 font-semibold shadow-lg hover:shadow-xl transition-all"
+                            >
+                              <Download className="w-5 h-5 mr-2" />
+                              Download PDF
+                            </Button>
+                            <Button 
+                              onClick={() => speakText((it.result.treatment.immediate[language] || []).concat(it.result.treatment.chemical[language] || [], it.result.treatment.organic[language] || []).join(". "), language === "kn" ? "kn-IN" : "en-US")}
+                              className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 font-semibold shadow-lg hover:shadow-xl transition-all"
+                            >
+                              <Volume2 className="w-5 h-5 mr-2" />
+                              Play Audio
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-2xl flex items-center justify-center">
+                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-lg font-semibold text-foreground mb-2">No Results Yet</p>
+                  <p className="text-sm text-muted-foreground">Upload crop images and analyze to see disease detection results</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
     </>

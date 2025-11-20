@@ -1,0 +1,630 @@
+{% extends 'farm_management/base.html' %}
+
+{% block title %}Inventory - Farm Management{% endblock %}
+
+{% block content %}
+<div id="alerts-container"></div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-boxes me-2"></i>Inventory Management</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inventoryModal">
+        <i class="fas fa-plus me-1"></i>Add Item
+    </button>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Total Items</h6>
+                        <h4 class="card-title text-primary" id="total-items">0</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-boxes fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Low Stock Items</h6>
+                        <h4 class="card-title text-warning" id="low-stock-count">0</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Total Value</h6>
+                        <h4 class="card-title text-success" id="total-value">₹0</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-rupee-sign fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">Expiring Soon</h6>
+                        <h4 class="card-title text-danger" id="expiring-count">0</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-times fa-2x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">Category</label>
+                <select class="form-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Stock Status</label>
+                <select class="form-select" id="stockFilter">
+                    <option value="">All Items</option>
+                    <option value="low">Low Stock</option>
+                    <option value="normal">Normal Stock</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input type="text" class="form-control" id="searchFilter" placeholder="Search items...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button class="btn btn-outline-primary" onclick="applyFilters()">
+                        <i class="fas fa-filter me-1"></i>Filter
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Table -->
+<div class="card">
+    <div class="card-header">
+        <h5><i class="fas fa-list me-2"></i>Inventory Items</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Category</th>
+                        <th>Current Stock</th>
+                        <th>Min Stock</th>
+                        <th>Unit Price</th>
+                        <th>Total Value</th>
+                        <th>Status</th>
+                        <th>Expiry Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTableBody">
+                    <tr>
+                        <td colspan="9" class="text-center">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <nav>
+            <ul class="pagination justify-content-center" id="pagination">
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Add/Edit Inventory Modal -->
+<div class="modal fade" id="inventoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="inventoryModalTitle">Add Inventory Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="inventoryForm">
+                <div class="modal-body">
+                    <input type="hidden" id="inventoryId">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Item Name *</label>
+                                <input type="text" class="form-control" id="itemName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Category *</label>
+                                <select class="form-select" id="category" required>
+                                    <option value="">Select Category</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Brand</label>
+                                <input type="text" class="form-control" id="brand">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Unit *</label>
+                                <select class="form-select" id="unit" required>
+                                    <option value="kg">Kilogram</option>
+                                    <option value="liter">Liter</option>
+                                    <option value="bag">Bag</option>
+                                    <option value="bottle">Bottle</option>
+                                    <option value="packet">Packet</option>
+                                    <option value="piece">Piece</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Current Stock *</label>
+                                <input type="number" class="form-control" id="currentStock" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Minimum Stock *</label>
+                                <input type="number" class="form-control" id="minimumStock" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Cost per Unit (₹) *</label>
+                                <input type="number" class="form-control" id="costPerUnit" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Supplier Name</label>
+                                <input type="text" class="form-control" id="supplierName">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Supplier Contact</label>
+                                <input type="tel" class="form-control" id="supplierContact">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Expiry Date</label>
+                        <input type="date" class="form-control" id="expiryDate">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Update Modal -->
+<div class="modal fade" id="stockUpdateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="stockUpdateForm">
+                <div class="modal-body">
+                    <input type="hidden" id="updateItemId">
+                    <div class="mb-3">
+                        <label class="form-label">Item: <span id="updateItemName"></span></label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Current Stock: <span id="updateCurrentStock"></span></label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Action</label>
+                        <select class="form-select" id="stockAction" required>
+                            <option value="add">Add Stock</option>
+                            <option value="remove">Remove Stock</option>
+                            <option value="set">Set Stock</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="stockQuantity" step="0.01" min="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let currentFilters = {};
+
+$(document).ready(function() {
+    loadCategories();
+    loadInventory();
+    loadInventoryStats();
+    
+    // Form submissions
+    $('#inventoryForm').on('submit', function(e) {
+        e.preventDefault();
+        saveInventoryItem();
+    });
+    
+    $('#stockUpdateForm').on('submit', function(e) {
+        e.preventDefault();
+        updateStock();
+    });
+});
+
+function loadCategories() {
+    $.get(API_BASE_URL + 'inventory-categories/')
+        .done(function(data) {
+            let options = '<option value="">Select Category</option>';
+            let filterOptions = '<option value="">All Categories</option>';
+            
+            data.forEach(category => {
+                options += `<option value="${category.id}">${category.name}</option>`;
+                filterOptions += `<option value="${category.id}">${category.name}</option>`;
+            });
+            
+            $('#category').html(options);
+            $('#categoryFilter').html(filterOptions);
+        })
+        .fail(function() {
+            showAlert('Failed to load categories', 'danger');
+        });
+}
+
+function loadInventory(page = 1) {
+    let url = API_BASE_URL + 'inventory/?page=' + page;
+    
+    // Add filters
+    if (currentFilters.category) {
+        url += '&category=' + currentFilters.category;
+    }
+    if (currentFilters.search) {
+        url += '&search=' + encodeURIComponent(currentFilters.search);
+    }
+    
+    $.get(url)
+        .done(function(data) {
+            displayInventory(data.results || data);
+            updatePagination(data);
+        })
+        .fail(function() {
+            showAlert('Failed to load inventory', 'danger');
+        });
+}
+
+function loadInventoryStats() {
+    $.get(API_BASE_URL + 'inventory/')
+        .done(function(data) {
+            const items = data.results || data;
+            let totalItems = items.length;
+            let lowStockCount = 0;
+            let totalValue = 0;
+            let expiringCount = 0;
+            
+            const today = new Date();
+            const thirtyDaysFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000));
+            
+            items.forEach(item => {
+                if (item.is_low_stock) lowStockCount++;
+                totalValue += parseFloat(item.total_value || 0);
+                
+                if (item.expiry_date) {
+                    const expiryDate = new Date(item.expiry_date);
+                    if (expiryDate <= thirtyDaysFromNow && expiryDate >= today) {
+                        expiringCount++;
+                    }
+                }
+            });
+            
+            $('#total-items').text(totalItems);
+            $('#low-stock-count').text(lowStockCount);
+            $('#total-value').text(formatCurrency(totalValue));
+            $('#expiring-count').text(expiringCount);
+        });
+}
+
+function displayInventory(items) {
+    let html = '';
+    
+    if (items.length === 0) {
+        html = '<tr><td colspan="9" class="text-center text-muted">No inventory items found</td></tr>';
+    } else {
+        items.forEach(item => {
+            const stockStatus = getStockStatus(item);
+            const expiryStatus = getExpiryStatus(item.expiry_date);
+            
+            html += `
+                <tr>
+                    <td>
+                        <strong>${item.name}</strong>
+                        ${item.brand ? `<br><small class="text-muted">${item.brand}</small>` : ''}
+                    </td>
+                    <td>${item.category_name}</td>
+                    <td>${item.current_stock} ${item.unit}</td>
+                    <td>${item.minimum_stock} ${item.unit}</td>
+                    <td>${formatCurrency(item.cost_per_unit)}</td>
+                    <td>${formatCurrency(item.total_value)}</td>
+                    <td>${stockStatus}</td>
+                    <td>${expiryStatus}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" onclick="updateStockModal(${item.id}, '${item.name}', ${item.current_stock}, '${item.unit}')" title="Update Stock">
+                            <i class="fas fa-plus-minus"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editInventoryItem(${item.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteInventoryItem(${item.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    
+    $('#inventoryTableBody').html(html);
+}
+
+function getStockStatus(item) {
+    if (item.is_low_stock) {
+        return '<span class="badge bg-warning">Low Stock</span>';
+    }
+    return '<span class="badge bg-success">Normal</span>';
+}
+
+function getExpiryStatus(expiryDate) {
+    if (!expiryDate) return '-';
+    
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilExpiry < 0) {
+        return `<span class="text-danger">Expired</span>`;
+    } else if (daysUntilExpiry <= 30) {
+        return `<span class="text-warning">${formatDate(expiryDate)}</span>`;
+    } else {
+        return formatDate(expiryDate);
+    }
+}
+
+function updatePagination(data) {
+    let html = '';
+    if (data.previous) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="loadInventory(${currentPage - 1})">Previous</a></li>`;
+    }
+    html += `<li class="page-item active"><a class="page-link" href="#">${currentPage}</a></li>`;
+    if (data.next) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="loadInventory(${currentPage + 1})">Next</a></li>`;
+    }
+    $('#pagination').html(html);
+}
+
+function applyFilters() {
+    currentFilters = {
+        category: $('#categoryFilter').val(),
+        search: $('#searchFilter').val()
+    };
+    currentPage = 1;
+    loadInventory();
+}
+
+function clearFilters() {
+    $('#categoryFilter').val('');
+    $('#stockFilter').val('');
+    $('#searchFilter').val('');
+    currentFilters = {};
+    currentPage = 1;
+    loadInventory();
+}
+
+function saveInventoryItem() {
+    const itemData = {
+        name: $('#itemName').val(),
+        category: $('#category').val(),
+        brand: $('#brand').val(),
+        unit: $('#unit').val(),
+        current_stock: $('#currentStock').val(),
+        minimum_stock: $('#minimumStock').val(),
+        cost_per_unit: $('#costPerUnit').val(),
+        supplier_name: $('#supplierName').val(),
+        supplier_contact: $('#supplierContact').val(),
+        expiry_date: $('#expiryDate').val() || null
+    };
+    
+    const itemId = $('#inventoryId').val();
+    const url = itemId ? 
+        API_BASE_URL + 'inventory/' + itemId + '/' : 
+        API_BASE_URL + 'inventory/';
+    
+    const method = itemId ? 'PUT' : 'POST';
+    
+    $.ajax({
+        url: url,
+        method: method,
+        data: JSON.stringify(itemData),
+        contentType: 'application/json'
+    })
+    .done(function() {
+        $('#inventoryModal').modal('hide');
+        loadInventory(currentPage);
+        loadInventoryStats();
+        showAlert('Inventory item saved successfully', 'success');
+        resetForm();
+    })
+    .fail(function(xhr) {
+        const errors = xhr.responseJSON;
+        let errorMessage = 'Failed to save inventory item';
+        if (errors) {
+            errorMessage += ': ' + Object.values(errors).flat().join(', ');
+        }
+        showAlert(errorMessage, 'danger');
+    });
+}
+
+function editInventoryItem(id) {
+    $.get(API_BASE_URL + 'inventory/' + id + '/')
+        .done(function(item) {
+            $('#inventoryId').val(item.id);
+            $('#itemName').val(item.name);
+            $('#category').val(item.category);
+            $('#brand').val(item.brand);
+            $('#unit').val(item.unit);
+            $('#currentStock').val(item.current_stock);
+            $('#minimumStock').val(item.minimum_stock);
+            $('#costPerUnit').val(item.cost_per_unit);
+            $('#supplierName').val(item.supplier_name);
+            $('#supplierContact').val(item.supplier_contact);
+            $('#expiryDate').val(item.expiry_date);
+            
+            $('#inventoryModalTitle').text('Edit Inventory Item');
+            $('#inventoryModal').modal('show');
+        })
+        .fail(function() {
+            showAlert('Failed to load item details', 'danger');
+        });
+}
+
+function deleteInventoryItem(id) {
+    if (confirm('Are you sure you want to delete this inventory item?')) {
+        $.ajax({
+            url: API_BASE_URL + 'inventory/' + id + '/',
+            method: 'DELETE'
+        })
+        .done(function() {
+            loadInventory(currentPage);
+            loadInventoryStats();
+            showAlert('Inventory item deleted successfully', 'success');
+        })
+        .fail(function() {
+            showAlert('Failed to delete inventory item', 'danger');
+        });
+    }
+}
+
+function updateStockModal(id, name, currentStock, unit) {
+    $('#updateItemId').val(id);
+    $('#updateItemName').text(name);
+    $('#updateCurrentStock').text(currentStock + ' ' + unit);
+    $('#stockUpdateModal').modal('show');
+}
+
+function updateStock() {
+    const itemId = $('#updateItemId').val();
+    const action = $('#stockAction').val();
+    const quantity = parseFloat($('#stockQuantity').val());
+    
+    // Get current item data first
+    $.get(API_BASE_URL + 'inventory/' + itemId + '/')
+        .done(function(item) {
+            let newStock = parseFloat(item.current_stock);
+            
+            switch(action) {
+                case 'add':
+                    newStock += quantity;
+                    break;
+                case 'remove':
+                    newStock = Math.max(0, newStock - quantity);
+                    break;
+                case 'set':
+                    newStock = quantity;
+                    break;
+            }
+            
+            // Update the item
+            $.ajax({
+                url: API_BASE_URL + 'inventory/' + itemId + '/',
+                method: 'PATCH',
+                data: JSON.stringify({current_stock: newStock}),
+                contentType: 'application/json'
+            })
+            .done(function() {
+                $('#stockUpdateModal').modal('hide');
+                loadInventory(currentPage);
+                loadInventoryStats();
+                showAlert('Stock updated successfully', 'success');
+                $('#stockUpdateForm')[0].reset();
+            })
+            .fail(function() {
+                showAlert('Failed to update stock', 'danger');
+            });
+        });
+}
+
+function resetForm() {
+    $('#inventoryForm')[0].reset();
+    $('#inventoryId').val('');
+    $('#inventoryModalTitle').text('Add Inventory Item');
+}
+
+// Reset form when modal is hidden
+$('#inventoryModal').on('hidden.bs.modal', function() {
+    resetForm();
+});
+
+$('#stockUpdateModal').on('hidden.bs.modal', function() {
+    $('#stockUpdateForm')[0].reset();
+});
+</script>
+{% endblock %}

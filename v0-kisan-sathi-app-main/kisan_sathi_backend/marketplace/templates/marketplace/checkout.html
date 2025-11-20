@@ -1,0 +1,262 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Kisan Marketplace{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 0;">
+    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 2rem;">Checkout</h1>
+    
+    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 2rem;">
+        <div>
+            <!-- Delivery Address -->
+            <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);">
+                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">Delivery Address</h3>
+                <div id="addresses-container">Loading...</div>
+            </div>
+            
+            <!-- Payment Method -->
+            <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);">
+                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">Payment Method</h3>
+                <div style="display: grid; gap: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer;">
+                        <input type="radio" name="payment" value="upi" checked>
+                        <div>
+                            <div style="font-weight: 600;">UPI</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Pay using UPI apps</div>
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer;">
+                        <input type="radio" name="payment" value="card">
+                        <div>
+                            <div style="font-weight: 600;">Credit/Debit Card</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Visa, Mastercard, RuPay</div>
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer;">
+                        <input type="radio" name="payment" value="cod">
+                        <div>
+                            <div style="font-weight: 600;">Cash on Delivery</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Pay when you receive</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Order Notes -->
+            <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Order Notes (Optional)</h3>
+                <textarea id="order-notes" placeholder="Any special instructions..." 
+                          style="width: 100%; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); min-height: 100px;"></textarea>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div>
+            <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); position: sticky; top: 100px;">
+                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">Order Summary</h3>
+                
+                <div id="order-items" style="margin-bottom: 1.5rem; max-height: 300px; overflow-y: auto;"></div>
+                
+                <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span style="color: var(--text-secondary);">Subtotal</span>
+                        <span id="subtotal">₹0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span style="color: var(--text-secondary);">Delivery</span>
+                        <span>₹50.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span style="color: var(--text-secondary);">Tax (5%)</span>
+                        <span id="tax">₹0.00</span>
+                    </div>
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 700;">
+                            <span>Total</span>
+                            <span id="total" style="color: var(--primary-color);">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1.5rem;" onclick="placeOrder()" id="place-order-btn">
+                    Place Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.address-card {
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 1rem;
+}
+
+.address-card:hover {
+    border-color: var(--primary-color);
+}
+
+.address-card.selected {
+    border-color: var(--primary-color);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+@media (max-width: 1024px) {
+    .container > div {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let cartItems = [];
+let addresses = [];
+let selectedAddress = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadCheckoutData();
+});
+
+async function loadCheckoutData() {
+    try {
+        showLoading();
+        
+        // Load cart
+        const cartResponse = await fetchCartSummary();
+        cartItems = cartResponse.items || [];
+        
+        // Load addresses
+        addresses = await fetchDeliveryAddresses();
+        
+        hideLoading();
+        
+        if (cartItems.length === 0) {
+            window.location.href = '/marketplace/cart/';
+            return;
+        }
+        
+        displayAddresses();
+        displayOrderSummary();
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Error loading checkout:', error);
+        showToast('Please login to continue', 'error');
+        setTimeout(() => window.location.href = '/login/', 2000);
+    }
+}
+
+function displayAddresses() {
+    const container = document.getElementById('addresses-container');
+    
+    if (addresses.length === 0) {
+        container.innerHTML = `
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">No saved addresses</p>
+            <button class="btn btn-outline" onclick="alert('Add address feature coming soon!')">Add New Address</button>
+        `;
+        return;
+    }
+    
+    selectedAddress = addresses.find(a => a.is_default) || addresses[0];
+    
+    container.innerHTML = addresses.map(addr => `
+        <div class="address-card ${addr.id === selectedAddress.id ? 'selected' : ''}" 
+             onclick="selectAddress('${addr.id}')">
+            <div style="font-weight: 600; margin-bottom: 0.5rem;">${addr.label || 'Address'}</div>
+            <div style="color: var(--text-secondary); font-size: 0.875rem;">
+                ${addr.contact_name}<br>
+                ${addr.address_line1}<br>
+                ${addr.city}, ${addr.state} - ${addr.pincode}<br>
+                Phone: ${addr.contact_phone}
+            </div>
+        </div>
+    `).join('');
+}
+
+function selectAddress(addressId) {
+    selectedAddress = addresses.find(a => a.id === addressId);
+    document.querySelectorAll('.address-card').forEach(card => card.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+}
+
+function displayOrderSummary() {
+    const itemsContainer = document.getElementById('order-items');
+    
+    itemsContainer.innerHTML = cartItems.map(item => `
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <img src="${item.product.primary_image_url || getPlaceholderImage(item.product.name)}" 
+                 style="width: 60px; height: 60px; object-fit: cover; border-radius: var(--radius-md);"
+                 onerror="handleImageError(this)">
+            <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.875rem;">${item.product.name}</div>
+                <div style="color: var(--text-secondary); font-size: 0.75rem;">${item.quantity} ${item.product.unit}</div>
+            </div>
+            <div style="font-weight: 600;">${formatPrice(item.subtotal)}</div>
+        </div>
+    `).join('');
+    
+    const subtotal = cartItems.reduce((sum, item) => sum + parseFloat(item.subtotal), 0);
+    const tax = subtotal * 0.05;
+    const total = subtotal + 50 + tax;
+    
+    document.getElementById('subtotal').textContent = formatPrice(subtotal);
+    document.getElementById('tax').textContent = formatPrice(tax);
+    document.getElementById('total').textContent = formatPrice(total);
+}
+
+async function placeOrder() {
+    if (!selectedAddress) {
+        showToast('Please select a delivery address', 'warning');
+        return;
+    }
+    
+    const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+    const notes = document.getElementById('order-notes').value;
+    
+    if (!confirmAction('Confirm order placement?')) return;
+    
+    try {
+        showLoading();
+        
+        // Create orders for each cart item
+        const orders = [];
+        for (const item of cartItems) {
+            const orderData = {
+                product_id: item.product.id,
+                quantity: item.quantity,
+                delivery_address_id: selectedAddress.id,
+                payment_method: paymentMethod,
+                buyer_notes: notes
+            };
+            
+            const order = await createOrder(orderData);
+            orders.push(order);
+        }
+        
+        // Clear cart
+        await clearCart();
+        
+        hideLoading();
+        showToast('Order placed successfully!', 'success');
+        
+        // Redirect to orders page
+        setTimeout(() => {
+            window.location.href = '/marketplace/buyer/dashboard/';
+        }, 2000);
+        
+    } catch (error) {
+        hideLoading();
+        console.error('Order error:', error);
+        showToast('Failed to place order. Please try again.', 'error');
+    }
+}
+</script>
+{% endblock %}

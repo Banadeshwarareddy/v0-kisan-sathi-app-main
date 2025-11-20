@@ -1,0 +1,205 @@
+[
+  {
+    "model": "farm_management.expensecategory",
+    "pk": 1,
+    "fields": {
+      "name": "Seeds",
+      "description": "Cost of seeds for planting",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.expensecategory",
+    "pk": 2,
+    "fields": {
+      "name": "Fertilizers",
+      "description": "Chemical and organic fertilizers",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.expensecategory",
+    "pk": 3,
+    "fields": {
+      "name": "Pesticides",
+      "description": "Insecticides, herbicides, and fungicides",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.expensecategory",
+    "pk": 4,
+    "fields": {
+      "name": "Labor",
+      "description": "Farm labor costs",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.expensecategory",
+    "pk": 5,
+    "fields": {
+      "name": "Equipment",
+      "description": "Farm equipment and machinery",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.expensecategory",
+    "pk": 6,
+    "fields": {
+      "name": "Irrigation",
+      "description": "Water and irrigation costs",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.expensecategory",
+    "pk": 7,
+    "fields": {
+      "name": "Transportation",
+      "description": "Transport and logistics costs",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.crop",
+    "pk": 1,
+    "fields": {
+      "name": "Rice",
+      "variety": "Basmati",
+      "season": "kharif",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.crop",
+    "pk": 2,
+    "fields": {
+      "name": "Wheat",
+      "variety": "HD-2967",
+      "season": "rabi",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.crop",
+    "pk": 3,
+    "fields": {
+      "name": "Sugarcane",
+      "variety": "",
+      "season": "perennial",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.crop",
+    "pk": 4,
+    "fields": {
+      "name": "Cotton",
+      "variety": "Bt Cotton",
+      "season": "kharif",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.crop",
+    "pk": 5,
+    "fields": {
+      "name": "Maize",
+      "variety": "Hybrid",
+      "season": "kharif",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.crop",
+    "pk": 6,
+    "fields": {
+      "name": "Tomato",
+      "variety": "Hybrid",
+      "season": "rabi",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "farm_management.inventorycategory",
+    "pk": 1,
+    "fields": {
+      "name": "Seeds",
+      "description": "Various types of seeds"
+    }
+  },
+  {
+    "model": "farm_management.inventorycategory",
+    "pk": 2,
+    "fields": {
+      "name": "Fertilizers",
+      "description": "Chemical and organic fertilizers"
+    }
+  },
+  {
+    "model": "farm_management.inventorycategory",
+    "pk": 3,
+    "fields": {
+      "name": "Pesticides",
+      "description": "Pest control chemicals"
+    }
+  },
+  {
+    "model": "farm_management.inventorycategory",
+    "pk": 4,
+    "fields": {
+      "name": "Animal Feed",
+      "description": "Feed for livestock"
+    }
+  },
+  {
+    "model": "farm_management.inventorycategory",
+    "pk": 5,
+    "fields": {
+      "name": "Tools",
+      "description": "Farm tools and equipment"
+    }
+  },
+  {
+    "model": "farm_management.livestocktype",
+    "pk": 1,
+    "fields": {
+      "name": "Cow",
+      "description": "Dairy and beef cattle"
+    }
+  },
+  {
+    "model": "farm_management.livestocktype",
+    "pk": 2,
+    "fields": {
+      "name": "Buffalo",
+      "description": "Water buffalo for milk and meat"
+    }
+  },
+  {
+    "model": "farm_management.livestocktype",
+    "pk": 3,
+    "fields": {
+      "name": "Goat",
+      "description": "Goats for milk and meat"
+    }
+  },
+  {
+    "model": "farm_management.livestocktype",
+    "pk": 4,
+    "fields": {
+      "name": "Chicken",
+      "description": "Poultry for eggs and meat"
+    }
+  },
+  {
+    "model": "farm_management.livestocktype",
+    "pk": 5,
+    "fields": {
+      "name": "Sheep",
+      "description": "Sheep for wool and meat"
+    }
+  }
+]

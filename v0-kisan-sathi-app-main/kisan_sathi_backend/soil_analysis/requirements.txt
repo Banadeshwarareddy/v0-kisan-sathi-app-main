@@ -1,0 +1,15 @@
+# AI Soil Analyzer Dependencies
+
+# Core AI/ML
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# PDF Generation
+reportlab>=4.0.0
+
+# Text-to-Speech
+gTTS>=2.3.0
+
+# Optional: For future real AI model
+# tensorflow>=2.13.0
+# scikit-learn>=1.3.0

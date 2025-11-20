@@ -331,7 +331,7 @@ class ReportPDFView(APIView):
         line = top
 
         p.setFont("Helvetica-Bold", 16)
-        p.drawString(left, line, "Kisan Sathi - Crop Doctor Report")
+        p.drawString(left, line, "Kisan Sathi - AI Crop Detector Report")
         line -= 10 * mm
 
         p.setFont("Helvetica", 10)

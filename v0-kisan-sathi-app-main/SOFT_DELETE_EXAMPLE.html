@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Management with Soft Delete</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { color: #2c3e50; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; background: white; padding: 0 20px; border-radius: 8px 8px 0 0; }
+        .tab { padding: 15px 25px; cursor: pointer; border: none; background: none; font-size: 16px; font-weight: 600; color: #666; position: relative; transition: all 0.3s; }
+        .tab:hover { color: #3498db; }
+        .tab.active { color: #3498db; }
+        .tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: #3498db; }
+        .tab-badge { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 8px; }
+        
+        .tab-content { display: none; background: white; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .tab-content.active { display: block; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .stat-card h3 { font-size: 32px; margin-bottom: 5px; }
+        .stat-card p { font-size: 14px; opacity: 0.9; }
+        
+        .expense-card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 15px; transition: all 0.3s; }
+        .expense-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .expense-card.deleted { background: #fff3e0; border-left: 4px solid #f39c12; }
+        .expense-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; }
+        .expense-title { font-size: 20px; font-weight: 600; color: #2c3e50; }
+        .expense-amount { font-size: 24px; font-weight: bold; color: #e74c3c; }
+        .expense-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .expense-detail { color: #555; }
+        .expense-detail strong { color: #2c3e50; }
+        .expense-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-success:hover { background: #229954; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; }
+        
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-state svg { width: 100px; height: 100px; margin-bottom: 20px; opacity: 0.3; }
+        
+        .loading { text-align: center; padding: 40px; color: #3498db; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Expense Management</h1>
+            <p>Track your farm expenses with soft delete and restore functionality</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3 id="totalExpenses">₹0</h3>
+                <p>Total Expenses</p>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h3 id="activeCount">0</h3>
+                <p>Active Records</p>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <h3 id="deletedCount">0</h3>
+                <p>Deleted Records</p>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('active')">
+                📊 Active Expenses
+                <span class="tab-badge" id="activeTabBadge">0</span>
+            </button>
+            <button class="tab" onclick="showTab('history')">
+                🗂️ History
+                <span class="tab-badge" id="historyTabBadge">0</span>
+            </button>
+        </div>
+
+        <!-- Active Expenses Tab -->
+        <div id="activeTab" class="tab-content active">
+            <div id="activeExpensesList"></div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="historyTab" class="tab-content">
+            <div id="historyExpensesList"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000/farm-management/api';
+
+        // Get JWT token from localStorage
+        function getAuthToken() {
+            return localStorage.getItem('kisan-sathi-access') || '';
+        }
+
+        // Fetch with authentication
+        async function fetchWithAuth(url, options = {}) {
+            const token = getAuthToken();
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+            
+            const response = await fetch(url, { ...options, headers });
+            
+            if (response.status === 401) {
+                alert('Session expired. Please login again.');
+                window.location.href = '/login';
+                throw new Error('Unauthorized');
+            }
+            
+            return response;
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            let toast = document.getElementById('toast-notification');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast-notification';
+                toast.style.cssText = `
+                    position: fixed; top: 20px; right: 20px; padding: 15px 25px;
+                    border-radius: 5px; color: white; font-weight: 600; z-index: 10000;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none;
+                `;
+                document.body.appendChild(toast);
+            }
+            
+            toast.textContent = message;
+            toast.style.background = type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#f39c12';
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Delete expense
+        async function deleteExpense(expenseId) {
+            if (!confirm('Are you sure you want to delete this expense? You can restore it later from History.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetchWithAuth(`${API_BASE}/expenses/${expenseId}/`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success || response.ok) {
+                    showToast('Expense deleted successfully. Check History to restore.');
+                    
+                    const expenseElement = document.querySelector(`[data-expense-id="${expenseId}"]`);
+                    if (expenseElement) {
+                        expenseElement.style.transition = 'opacity 0.3s ease-out';
+                        expenseElement.style.opacity = '0';
+                        setTimeout(() => {
+                            loadActiveExpenses();
+                            loadStats();
+                        }, 300);
+                    }
+                } else {
+                    showToast(result.message || 'Error deleting expense', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting expense:', error);
+                showToast('Error deleting expense', 'error');
+            }
+        }
+
+        // Restore expense
+        async function restoreExpense(expenseId) {
+            if (!confirm('Restore this expense?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetchWithAuth(`${API_BASE}/expenses/${expenseId}/restore/`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Expense restored successfully');
+                    
+                    const expenseElement = document.querySelector(`[data-expense-id="${expenseId}"]`);
+                    if (expenseElement) {
+                        expenseElement.style.transition = 'opacity 0.3s ease-out';
+                        expenseElement.style.opacity = '0';
+                        setTimeout(() => {
+                            loadHistory();
+                            loadStats();
+                        }, 300);
+                    }
+                } else {
+                    showToast(result.message || 'Error restoring expense', 'error');
+                }
+            } catch (error) {
+                console.error('Error restoring expense:', error);
+                showToast('Error restoring expense', 'error');
+            }
+        }
+
+        // Load active expenses
+        async function loadActiveExpenses() {
+            const container = document.getElementById('activeExpensesList');
+            container.innerHTML = '<div class="loading">Loading expenses...</div>';
+            
+            try {
+                const response = await fetchWithAuth(`${API_BASE}/expenses/`);
+                const expenses = await response.json();
+                
+                if (expenses.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <p style="font-size: 18px;">No expenses found</p>
+                            <p>Add your first expense to get started</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = expenses.map(expense => `
+                    <div class="expense-card" data-expense-id="${expense.id}">
+                        <div class="expense-header">
+                            <div class="expense-title">${expense.category_name}</div>
+                            <div class="expense-amount">₹${parseFloat(expense.amount).toLocaleString('en-IN')}</div>
+                        </div>
+                        <div class="expense-details">
+                            <div class="expense-detail">
+                                <strong>Date:</strong> ${new Date(expense.date).toLocaleDateString('en-IN')}
+                            </div>
+                            ${expense.notes ? `
+                                <div class="expense-detail">
+                                    <strong>Notes:</strong> ${expense.notes}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="expense-actions">
+                            <button class="btn btn-danger" onclick="deleteExpense(${expense.id})" title="Delete (Soft)">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading expenses:', error);
+                container.innerHTML = '<div class="empty-state"><p>Error loading expenses</p></div>';
+            }
+        }
+
+        // Load history
+        async function loadHistory() {
+            const container = document.getElementById('historyExpensesList');
+            container.innerHTML = '<div class="loading">Loading history...</div>';
+            
+            try {
+                const response = await fetchWithAuth(`${API_BASE}/expenses/history/`);
+                const result = await response.json();
+                const expenses = result.data || [];
+                
+                if (expenses.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <p style="font-size: 18px;">No deleted expenses</p>
+                            <p>Deleted expenses will appear here</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = expenses.map(expense => `
+                    <div class="expense-card deleted" data-expense-id="${expense.id}">
+                        <div class="expense-header">
+                            <div class="expense-title">${expense.category_name}</div>
+                            <div class="expense-amount">₹${parseFloat(expense.amount).toLocaleString('en-IN')}</div>
+                        </div>
+                        <div class="expense-details">
+                            <div class="expense-detail">
+                                <strong>Date:</strong> ${new Date(expense.date).toLocaleDateString('en-IN')}
+                            </div>
+                            <div class="expense-detail">
+                                <strong>Deleted:</strong> ${new Date(expense.deleted_at).toLocaleString('en-IN')}
+                            </div>
+                            ${expense.notes ? `
+                                <div class="expense-detail">
+                                    <strong>Notes:</strong> ${expense.notes}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="expense-actions">
+                            <button class="btn btn-success" onclick="restoreExpense(${expense.id})" title="Restore">
+                                ↩️ Restore
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading history:', error);
+                container.innerHTML = '<div class="empty-state"><p>Error loading history</p></div>';
+            }
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetchWithAuth(`${API_BASE}/expenses/summary/`);
+                const stats = await response.json();
+                
+                document.getElementById('totalExpenses').textContent = `₹${parseFloat(stats.total_expenses || 0).toLocaleString('en-IN')}`;
+                document.getElementById('activeCount').textContent = stats.expense_count || 0;
+                document.getElementById('deletedCount').textContent = stats.deleted_count || 0;
+                document.getElementById('activeTabBadge').textContent = stats.expense_count || 0;
+                document.getElementById('historyTabBadge').textContent = stats.deleted_count || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Show tab
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            
+            if (tabName === 'active') {
+                document.getElementById('activeTab').classList.add('active');
+                document.querySelector('.tab:first-child').classList.add('active');
+                loadActiveExpenses();
+            } else {
+                document.getElementById('historyTab').classList.add('active');
+                document.querySelector('.tab:last-child').classList.add('active');
+                loadHistory();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = getAuthToken();
+            if (!token) {
+                alert('Please login first');
+                window.location.href = '/login';
+                return;
+            }
+            
+            loadActiveExpenses();
+            loadStats();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Farm Management - Kisan Sathi{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* ============================================
+           DARK MODE SUPPORT
+           ============================================ */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1a1a1a !important;
+                color: #e0e0e0 !important;
+            }
+            
+            .main-content {
+                background-color: #1a1a1a !important;
+                color: #e0e0e0 !important;
+            }
+            
+            .card {
+                background-color: #2d2d2d !important;
+                color: #e0e0e0 !important;
+                border: 1px solid #404040 !important;
+            }
+            
+            .card-header {
+                background-color: #333333 !important;
+                color: #e0e0e0 !important;
+                border-bottom: 1px solid #404040 !important;
+            }
+            
+            .card-body {
+                background-color: #2d2d2d !important;
+                color: #e0e0e0 !important;
+            }
+            
+            .card-title, .card-subtitle, h1, h2, h3, h4, h5, h6 {
+                color: #e0e0e0 !important;
+            }
+            
+            .text-muted {
+                color: #999999 !important;
+            }
+            
+            .table {
+                color: #e0e0e0 !important;
+                background-color: #2d2d2d !important;
+            }
+            
+            .table th {
+                background-color: #333333 !important;
+                color: #e0e0e0 !important;
+                border-color: #404040 !important;
+            }
+            
+            .table td {
+                background-color: #2d2d2d !important;
+                color: #e0e0e0 !important;
+                border-color: #404040 !important;
+            }
+            
+            .table-striped tbody tr:nth-of-type(odd) {
+                background-color: #262626 !important;
+            }
+            
+            .navbar {
+                background-color: #2d2d2d !important;
+                border-bottom: 1px solid #404040 !important;
+            }
+            
+            .navbar-brand {
+                color: #4a7c59 !important;
+            }
+            
+            .navbar-text {
+                color: #e0e0e0 !important;
+            }
+            
+            .form-control, .form-select {
+                background-color: #333333 !important;
+                color: #e0e0e0 !important;
+                border-color: #404040 !important;
+            }
+            
+            .form-control:focus, .form-select:focus {
+                background-color: #3a3a3a !important;
+                color: #e0e0e0 !important;
+                border-color: #4a7c59 !important;
+            }
+            
+            .form-label {
+                color: #e0e0e0 !important;
+            }
+            
+            .modal-content {
+                background-color: #2d2d2d !important;
+                color: #e0e0e0 !important;
+                border: 1px solid #404040 !important;
+            }
+            
+            .modal-header {
+                background-color: #333333 !important;
+                border-bottom: 1px solid #404040 !important;
+            }
+            
+            .modal-footer {
+                background-color: #333333 !important;
+                border-top: 1px solid #404040 !important;
+            }
+            
+            .btn-close {
+                filter: invert(1);
+            }
+            
+            .stats-card {
+                background: linear-gradient(135deg, #2d2d2d, #333333) !important;
+                border-left: 4px solid #4a7c59 !important;
+            }
+            
+            /* Keep success/danger/warning colors visible */
+            .text-success {
+                color: #5cb85c !important;
+            }
+            
+            .text-danger {
+                color: #d9534f !important;
+            }
+            
+            .text-warning {
+                color: #f0ad4e !important;
+            }
+            
+            .text-info {
+                color: #5bc0de !important;
+            }
+            
+            .text-primary {
+                color: #5cb3ff !important;
+            }
+            
+            /* Badge colors */
+            .badge {
+                color: #fff !important;
+            }
+            
+            /* Alert styling */
+            .alert {
+                border: 1px solid #404040 !important;
+            }
+            
+            .alert-success {
+                background-color: #1e4620 !important;
+                color: #5cb85c !important;
+            }
+            
+            .alert-danger {
+                background-color: #4a1f1f !important;
+                color: #d9534f !important;
+            }
+            
+            .alert-warning {
+                background-color: #4a3a1f !important;
+                color: #f0ad4e !important;
+            }
+            
+            .alert-info {
+                background-color: #1f3a4a !important;
+                color: #5bc0de !important;
+            }
+            
+            /* List group items */
+            .list-group-item {
+                background-color: #2d2d2d !important;
+                color: #e0e0e0 !important;
+                border-color: #404040 !important;
+            }
+            
+            /* Dropdown menus */
+            .dropdown-menu {
+                background-color: #2d2d2d !important;
+                border-color: #404040 !important;
+            }
+            
+            .dropdown-item {
+                color: #e0e0e0 !important;
+            }
+            
+            .dropdown-item:hover {
+                background-color: #3a3a3a !important;
+                color: #fff !important;
+            }
+            
+            /* Small text elements */
+            small, .small {
+                color: #b0b0b0 !important;
+            }
+            
+            /* Strong/bold text */
+            strong, b {
+                color: #f0f0f0 !important;
+            }
+            
+            /* Links */
+            a {
+                color: #5cb3ff !important;
+            }
+            
+            a:hover {
+                color: #7ec5ff !important;
+            }
+        }
+        
+        /* ============================================
+           LIGHT MODE (DEFAULT)
+           ============================================ */
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #2c5530, #4a7c59);
+        }
+        .sidebar .nav-link {
+            color: #fff;
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2c5530, #4a7c59);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1e3a21, #356642);
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            border-left: 4px solid #4a7c59;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            border: none;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #2c5530 !important;
+        }
+        
+        /* Report Buttons Styling */
+        .btn.pdf-btn, .btn.excel-btn {
+            font-weight: 600;
+            padding: 10px 18px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .btn.pdf-btn {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: white !important;
+        }
+        
+        .btn.pdf-btn:hover,
+        .btn.pdf-btn:focus,
+        .btn.pdf-btn:active {
+            background-color: #b52b27 !important;
+            border-color: #b52b27 !important;
+            color: white !important;
+        }
+        
+        .btn.excel-btn {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+        }
+        
+        .btn.excel-btn:hover,
+        .btn.excel-btn:focus,
+        .btn.excel-btn:active {
+            background-color: #1e7e34 !important;
+            border-color: #1e7e34 !important;
+            color: white !important;
+        }
+        
+        .btn.pdf-btn i, .btn.excel-btn i {
+            font-size: 16px;
+        }
+        
+        /* ============================================
+           MODERN REPORT DOWNLOAD BUTTONS
+           ============================================ */
+        
+        /* Base button style for all report buttons - SUPER STRONG OVERRIDES */
+        button.report-btn,
+        .report-btn {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 10px 18px !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            border-radius: 10px !important;
+            border: none !important;
+            color: white !important;
+            text-decoration: none !important;
+            transition: all 0.3s ease !important;
+            cursor: pointer !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+            min-width: 140px !important;
+            margin: 5px !important;
+            outline: none !important;
+            background-color: transparent !important;
+        }
+        
+        button.report-btn i,
+        .report-btn i {
+            margin-right: 8px !important;
+            font-size: 16px !important;
+            color: white !important;
+        }
+        
+        button.report-btn:hover,
+        .report-btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+            color: white !important;
+            text-decoration: none !important;
+            border: none !important;
+        }
+        
+        button.report-btn:active,
+        button.report-btn:focus,
+        button.report-btn:focus-visible,
+        .report-btn:active,
+        .report-btn:focus,
+        .report-btn:focus-visible {
+            transform: translateY(0) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+            color: white !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* PDF Button - Red Theme - SUPER STRONG */
+        button.pdf-btn,
+        .pdf-btn,
+        button.report-btn.pdf-btn,
+        .report-btn.pdf-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            background-color: #dc3545 !important;
+        }
+        
+        button.pdf-btn:hover,
+        .pdf-btn:hover,
+        button.report-btn.pdf-btn:hover,
+        .report-btn.pdf-btn:hover {
+            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%) !important;
+            background-color: #c82333 !important;
+        }
+        
+        button.pdf-btn:active,
+        button.pdf-btn:focus,
+        button.pdf-btn:focus-visible,
+        .pdf-btn:active,
+        .pdf-btn:focus,
+        .pdf-btn:focus-visible {
+            background: linear-gradient(135deg, #bd2130 0%, #a71d2a 100%) !important;
+            background-color: #bd2130 !important;
+        }
+        
+        /* Excel Button - Green Theme - SUPER STRONG */
+        button.excel-btn,
+        .excel-btn,
+        button.report-btn.excel-btn,
+        .report-btn.excel-btn {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
+            background-color: #28a745 !important;
+        }
+        
+        button.excel-btn:hover,
+        .excel-btn:hover,
+        button.report-btn.excel-btn:hover,
+        .report-btn.excel-btn:hover {
+            background: linear-gradient(135deg, #218838 0%, #1e7e34 100%) !important;
+            background-color: #218838 !important;
+        }
+        
+        button.excel-btn:active,
+        button.excel-btn:focus,
+        button.excel-btn:focus-visible,
+        .excel-btn:active,
+        .excel-btn:focus,
+        .excel-btn:focus-visible {
+            background: linear-gradient(135deg, #1e7e34 0%, #1c7430 100%) !important;
+            background-color: #1e7e34 !important;
+        }
+        
+        /* Download All Button - Blue Theme */
+        .download-all-btn {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        }
+        
+        .download-all-btn:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+        }
+        
+        /* Analytics Button - Purple Theme */
+        .analytics-btn {
+            background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+        }
+        
+        .analytics-btn:hover {
+            background: linear-gradient(135deg, #5a32a3 0%, #4c2a8a 100%);
+        }
+        
+        /* Button Container */
+        .report-buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .report-buttons-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .report-btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+        
+        /* Section Divider */
+        .report-section-divider {
+            border-top: 2px solid #dee2e6;
+            margin: 30px 0;
+            padding-top: 20px;
+        }
+        
+        .report-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .report-section-title i {
+            margin-right: 10px;
+            color: #007bff;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="fas fa-seedling me-2"></i>Kisan Sathi - Farm Management
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    <i class="fas fa-user me-1"></i>Welcome, {{ user.username }}
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <nav class="nav flex-column">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'expenses' %}active{% endif %}" href="{% url 'expenses' %}">
+                            <i class="fas fa-money-bill-wave me-2"></i>Expenses
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'income' %}active{% endif %}" href="{% url 'income' %}">
+                            <i class="fas fa-coins me-2"></i>Income
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}" href="{% url 'inventory' %}">
+                            <i class="fas fa-boxes me-2"></i>Inventory
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'crop-planning' %}active{% endif %}" href="{% url 'crop-planning' %}">
+                            <i class="fas fa-calendar-alt me-2"></i>Crop Planning
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'livestock' %}active{% endif %}" href="{% url 'livestock' %}">
+                            <i class="fas fa-horse me-2"></i>Livestock
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'loans' %}active{% endif %}" href="{% url 'loans' %}">
+                            <i class="fas fa-university me-2"></i>Loans & EMI
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" href="{% url 'reports' %}">
+                            <i class="fas fa-chart-bar me-2"></i>Reports
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content p-4">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        // Common API configuration
+        const API_BASE_URL = '/farm-management/api/';
+        
+        // Common AJAX setup for CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        
+        // Common utility functions
+        function formatCurrency(amount) {
+            return '₹' + parseFloat(amount).toLocaleString('en-IN', {minimumFractionDigits: 2});
+        }
+        
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-IN');
+        }
+        
+        function showAlert(message, type = 'success') {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            $('#alerts-container').html(alertHtml);
+            setTimeout(() => {
+                $('.alert').fadeOut();
+            }, 5000);
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -4,11 +4,22 @@ import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 
 interface User {
-  id: string
+  id: string | number
   email: string
   name: string
   phone?: string
   district?: string
+  // Additional farmer profile fields
+  first_name?: string
+  last_name?: string
+  village?: string
+  taluk?: string
+  land_size?: number | null
+  crops_grown?: string[]
+  preferred_language?: string
+  profile_picture?: string | null
+  is_verified?: boolean
+  created_at?: string
 }
 
 interface AuthContextType {
@@ -32,19 +43,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  // Set mounted state
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Load user from localStorage on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("kisan-sathi-user")
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch (error) {
-        console.error("Failed to parse stored user:", error)
+    if (!mounted) return
+    
+    try {
+      if (typeof window !== 'undefined') {
+        const storedUser = localStorage.getItem("kisan-sathi-user")
+        if (storedUser) {
+          setUser(JSON.parse(storedUser))
+        }
       }
+    } catch (error) {
+      console.error("Failed to parse stored user:", error)
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
-  }, [])
+  }, [mounted])
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000"
 
@@ -88,12 +110,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const { access_token, refresh_token, farmer } = data.data
 
+      // Save complete farmer profile data
       const authedUser: User = {
-        id: String(farmer.id),
+        id: farmer.id,
         email: farmer.email,
         name: farmer.name,
         phone: farmer.phone,
         district: farmer.district,
+        // Save all additional profile fields
+        first_name: farmer.first_name || farmer.name?.split(' ')[0],
+        last_name: farmer.last_name || farmer.name?.split(' ').slice(1).join(' '),
+        village: farmer.village,
+        taluk: farmer.taluk,
+        land_size: farmer.land_size,
+        crops_grown: farmer.crops_grown || [],
+        preferred_language: farmer.preferred_language || 'en',
+        profile_picture: farmer.profile_picture,
+        is_verified: farmer.is_verified || false,
+        created_at: farmer.created_at,
       }
 
       setUser(authedUser)

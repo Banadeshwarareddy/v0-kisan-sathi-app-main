@@ -1,0 +1,599 @@
+{% extends 'farm_management/base.html' %}
+
+{% block title %}Reports - Farm Management{% endblock %}
+
+{% block content %}
+<div id="alerts-container"></div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chart-bar me-2"></i>Reports & Analytics</h2>
+    <div>
+        <button class="btn btn-outline-primary" onclick="exportToPDF()">
+            <i class="fas fa-file-pdf me-1"></i>Export PDF
+        </button>
+        <button class="btn btn-outline-success" onclick="exportToExcel()">
+            <i class="fas fa-file-excel me-1"></i>Export Excel
+        </button>
+    </div>
+</div>
+
+<!-- Report Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">Report Type</label>
+                <select class="form-select" id="reportType">
+                    <option value="financial">Financial Summary</option>
+                    <option value="crop">Crop Analysis</option>
+                    <option value="inventory">Inventory Report</option>
+                    <option value="livestock">Livestock Report</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">From Date</label>
+                <input type="date" class="form-control" id="fromDate">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">To Date</label>
+                <input type="date" class="form-control" id="toDate">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button class="btn btn-primary" onclick="generateReport()">
+                        <i class="fas fa-chart-line me-1"></i>Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Financial Summary Report -->
+<div id="financialReport" class="report-section">
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">Total Income</h5>
+                    <h3 id="reportTotalIncome">₹0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-danger">Total Expenses</h5>
+                    <h3 id="reportTotalExpenses">₹0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">Net Profit</h5>
+                    <h3 id="reportNetProfit">₹0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Income by Crop</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="incomeByCropChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Expense Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="expenseBreakdownChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Crop Analysis Report -->
+<div id="cropReport" class="report-section" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <h5>Crop Performance Analysis</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Crop</th>
+                            <th>Total Area</th>
+                            <th>Total Production</th>
+                            <th>Total Revenue</th>
+                            <th>Average Rate</th>
+                            <th>Profit Margin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cropAnalysisTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Report -->
+<div id="inventoryReport" class="report-section" style="display: none;">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Items</h5>
+                    <h3 id="inventoryTotalItems">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning">Low Stock</h5>
+                    <h3 id="inventoryLowStock">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">Total Value</h5>
+                    <h3 id="inventoryTotalValue">₹0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-danger">Expiring Soon</h5>
+                    <h3 id="inventoryExpiring">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>Inventory Status</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Current Stock</th>
+                            <th>Min Stock</th>
+                            <th>Value</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryStatusTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Livestock Report -->
+<div id="livestockReport" class="report-section" style="display: none;">
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Livestock</h5>
+                    <h3 id="livestockTotal">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">Healthy</h5>
+                    <h3 id="livestockHealthy">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning">Need Attention</h5>
+                    <h3 id="livestockAttention">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Livestock by Type</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="livestockTypeChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Health Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="healthStatusChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let reportCharts = {};
+
+$(document).ready(function() {
+    // Set default dates (last 30 days)
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    $('#toDate').val(today.toISOString().split('T')[0]);
+    $('#fromDate').val(thirtyDaysAgo.toISOString().split('T')[0]);
+    
+    // Generate default financial report
+    generateReport();
+});
+
+function generateReport() {
+    const reportType = $('#reportType').val();
+    const fromDate = $('#fromDate').val();
+    const toDate = $('#toDate').val();
+    
+    // Hide all report sections
+    $('.report-section').hide();
+    
+    // Show selected report section
+    $(`#${reportType}Report`).show();
+    
+    switch(reportType) {
+        case 'financial':
+            generateFinancialReport(fromDate, toDate);
+            break;
+        case 'crop':
+            generateCropReport(fromDate, toDate);
+            break;
+        case 'inventory':
+            generateInventoryReport();
+            break;
+        case 'livestock':
+            generateLivestockReport();
+            break;
+    }
+}
+
+function generateFinancialReport(fromDate, toDate) {
+    // Load financial summary
+    let incomeUrl = API_BASE_URL + 'income/';
+    let expenseUrl = API_BASE_URL + 'expenses/';
+    
+    if (fromDate) {
+        incomeUrl += `?sale_date__gte=${fromDate}`;
+        expenseUrl += `?date__gte=${fromDate}`;
+    }
+    if (toDate) {
+        const separator = fromDate ? '&' : '?';
+        incomeUrl += `${separator}sale_date__lte=${toDate}`;
+        expenseUrl += `${separator}date__lte=${toDate}`;
+    }
+    
+    Promise.all([
+        $.get(incomeUrl),
+        $.get(expenseUrl),
+        $.get(API_BASE_URL + 'expense-by-category/')
+    ]).then(([incomeData, expenseData, expenseCategoryData]) => {
+        const incomes = incomeData.results || incomeData;
+        const expenses = expenseData.results || expenseData;
+        
+        const totalIncome = incomes.reduce((sum, income) => sum + parseFloat(income.total_amount), 0);
+        const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+        const netProfit = totalIncome - totalExpenses;
+        
+        $('#reportTotalIncome').text(formatCurrency(totalIncome));
+        $('#reportTotalExpenses').text(formatCurrency(totalExpenses));
+        $('#reportNetProfit').text(formatCurrency(netProfit));
+        $('#reportNetProfit').removeClass('text-success text-danger').addClass(netProfit >= 0 ? 'text-success' : 'text-danger');
+        
+        // Generate income by crop chart
+        generateIncomeByCropChart(incomes);
+        
+        // Generate expense breakdown chart
+        generateExpenseBreakdownChart(expenseCategoryData);
+    });
+}
+
+function generateIncomeByCropChart(incomes) {
+    const cropIncome = {};
+    incomes.forEach(income => {
+        const crop = income.crop_name;
+        cropIncome[crop] = (cropIncome[crop] || 0) + parseFloat(income.total_amount);
+    });
+    
+    const ctx = document.getElementById('incomeByCropChart').getContext('2d');
+    
+    if (reportCharts.incomeByCrop) {
+        reportCharts.incomeByCrop.destroy();
+    }
+    
+    reportCharts.incomeByCrop = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(cropIncome),
+            datasets: [{
+                label: 'Income (₹)',
+                data: Object.values(cropIncome),
+                backgroundColor: '#28a745',
+                borderColor: '#1e7e34',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString('en-IN');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generateExpenseBreakdownChart(expenseData) {
+    const ctx = document.getElementById('expenseBreakdownChart').getContext('2d');
+    
+    if (reportCharts.expenseBreakdown) {
+        reportCharts.expenseBreakdown.destroy();
+    }
+    
+    if (expenseData.length === 0) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('No expense data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
+        return;
+    }
+    
+    reportCharts.expenseBreakdown = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: expenseData.map(item => item.category),
+            datasets: [{
+                data: expenseData.map(item => item.total_amount),
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                    '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function generateCropReport(fromDate, toDate) {
+    let url = API_BASE_URL + 'income/';
+    if (fromDate) url += `?sale_date__gte=${fromDate}`;
+    if (toDate) {
+        const separator = fromDate ? '&' : '?';
+        url += `${separator}sale_date__lte=${toDate}`;
+    }
+    
+    $.get(url).done(function(data) {
+        const incomes = data.results || data;
+        const cropAnalysis = {};
+        
+        incomes.forEach(income => {
+            const crop = income.crop_name;
+            if (!cropAnalysis[crop]) {
+                cropAnalysis[crop] = {
+                    totalQuantity: 0,
+                    totalRevenue: 0,
+                    totalArea: 0,
+                    count: 0
+                };
+            }
+            
+            cropAnalysis[crop].totalQuantity += parseFloat(income.quantity);
+            cropAnalysis[crop].totalRevenue += parseFloat(income.total_amount);
+            cropAnalysis[crop].count++;
+        });
+        
+        let html = '';
+        Object.keys(cropAnalysis).forEach(crop => {
+            const data = cropAnalysis[crop];
+            const avgRate = data.totalRevenue / data.totalQuantity;
+            
+            html += `
+                <tr>
+                    <td>${crop}</td>
+                    <td>-</td>
+                    <td>${data.totalQuantity.toFixed(2)}</td>
+                    <td>${formatCurrency(data.totalRevenue)}</td>
+                    <td>${formatCurrency(avgRate)}</td>
+                    <td>-</td>
+                </tr>
+            `;
+        });
+        
+        $('#cropAnalysisTable').html(html);
+    });
+}
+
+function generateInventoryReport() {
+    $.get(API_BASE_URL + 'inventory/').done(function(data) {
+        const items = data.results || data;
+        let totalItems = items.length;
+        let lowStockCount = 0;
+        let totalValue = 0;
+        let expiringCount = 0;
+        
+        const today = new Date();
+        const thirtyDaysFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000));
+        
+        let html = '';
+        items.forEach(item => {
+            if (item.is_low_stock) lowStockCount++;
+            totalValue += parseFloat(item.total_value || 0);
+            
+            if (item.expiry_date) {
+                const expiryDate = new Date(item.expiry_date);
+                if (expiryDate <= thirtyDaysFromNow && expiryDate >= today) {
+                    expiringCount++;
+                }
+            }
+            
+            const status = item.is_low_stock ? 
+                '<span class="badge bg-warning">Low Stock</span>' : 
+                '<span class="badge bg-success">Normal</span>';
+            
+            html += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.category_name}</td>
+                    <td>${item.current_stock} ${item.unit}</td>
+                    <td>${item.minimum_stock} ${item.unit}</td>
+                    <td>${formatCurrency(item.total_value)}</td>
+                    <td>${status}</td>
+                </tr>
+            `;
+        });
+        
+        $('#inventoryTotalItems').text(totalItems);
+        $('#inventoryLowStock').text(lowStockCount);
+        $('#inventoryTotalValue').text(formatCurrency(totalValue));
+        $('#inventoryExpiring').text(expiringCount);
+        $('#inventoryStatusTable').html(html);
+    });
+}
+
+function generateLivestockReport() {
+    $.get(API_BASE_URL + 'livestock/').done(function(data) {
+        const livestock = data.results || data;
+        let totalCount = livestock.length;
+        let healthyCount = 0;
+        let attentionCount = 0;
+        
+        const typeCount = {};
+        const healthCount = {};
+        
+        livestock.forEach(animal => {
+            // Count by type
+            const type = animal.livestock_type_name;
+            typeCount[type] = (typeCount[type] || 0) + 1;
+            
+            // Count by health status
+            const health = animal.health_status;
+            healthCount[health] = (healthCount[health] || 0) + 1;
+            
+            if (health === 'healthy') {
+                healthyCount++;
+            } else {
+                attentionCount++;
+            }
+        });
+        
+        $('#livestockTotal').text(totalCount);
+        $('#livestockHealthy').text(healthyCount);
+        $('#livestockAttention').text(attentionCount);
+        
+        // Generate livestock type chart
+        generateLivestockTypeChart(typeCount);
+        
+        // Generate health status chart
+        generateHealthStatusChart(healthCount);
+    });
+}
+
+function generateLivestockTypeChart(typeCount) {
+    const ctx = document.getElementById('livestockTypeChart').getContext('2d');
+    
+    if (reportCharts.livestockType) {
+        reportCharts.livestockType.destroy();
+    }
+    
+    reportCharts.livestockType = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(typeCount),
+            datasets: [{
+                data: Object.values(typeCount),
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function generateHealthStatusChart(healthCount) {
+    const ctx = document.getElementById('healthStatusChart').getContext('2d');
+    
+    if (reportCharts.healthStatus) {
+        reportCharts.healthStatus.destroy();
+    }
+    
+    reportCharts.healthStatus = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(healthCount),
+            datasets: [{
+                data: Object.values(healthCount),
+                backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#6c757d']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function exportToPDF() {
+    const year = new Date().getFullYear();
+    let url = API_BASE_URL + 'export/analytics/pdf/?year=' + year;
+    window.open(url, '_blank');
+    showAlert('Downloading Analytics PDF...', 'info');
+}
+
+function exportToExcel() {
+    showAlert('Excel export functionality will be implemented with a proper Excel library', 'info');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,217 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Farmer Dashboard - Kisan Marketplace{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 0;">
+    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 2rem;">Farmer Dashboard</h1>
+    
+    <!-- Stats Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+        <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+            <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">Total Products</div>
+            <div style="font-size: 2rem; font-weight: 700;" id="total-products">0</div>
+        </div>
+        <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+            <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">Total Orders</div>
+            <div style="font-size: 2rem; font-weight: 700;" id="total-orders">0</div>
+        </div>
+        <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+            <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">Total Sales</div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color);" id="total-sales">₹0</div>
+        </div>
+        <div style="background: white; padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+            <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">Rating</div>
+            <div style="font-size: 2rem; font-weight: 700;" id="rating">0.0</div>
+        </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div style="background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 2rem;">
+        <div style="display: flex; gap: 2rem; border-bottom: 2px solid var(--border-color); margin-bottom: 2rem;">
+            <button class="tab-btn active" onclick="switchTab('products')">My Products</button>
+            <button class="tab-btn" onclick="switchTab('orders')">Orders</button>
+        </div>
+        
+        <div id="products-tab" class="tab-content">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.25rem; font-weight: 700;">My Products</h3>
+                <a href="{% url 'marketplace:add_product' %}" class="btn btn-primary">+ Add Product</a>
+            </div>
+            <div id="products-list"></div>
+        </div>
+        
+        <div id="orders-tab" class="tab-content" style="display: none;">
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">Incoming Orders</h3>
+            <div id="orders-list"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.product-row {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+}
+
+.order-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentTab = 'products';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadDashboard();
+});
+
+async function loadDashboard() {
+    try {
+        showLoading();
+        // Note: This requires farmer profile - implement based on your auth
+        await loadProducts();
+        await loadOrders();
+        hideLoading();
+    } catch (error) {
+        hideLoading();
+        console.error('Dashboard error:', error);
+        showToast('Please login as a farmer', 'error');
+    }
+}
+
+async function loadProducts() {
+    try {
+        const response = await fetchProducts({ page_size: 100 });
+        const products = response.results || [];
+        
+        document.getElementById('total-products').textContent = products.length;
+        
+        const container = document.getElementById('products-list');
+        if (products.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-secondary);">No products yet. Add your first product!</p>';
+            return;
+        }
+        
+        container.innerHTML = products.map(p => `
+            <div class="product-row">
+                <img src="${p.primary_image_url || getPlaceholderImage(p.name)}" 
+                     style="width: 80px; height: 80px; object-fit: cover; border-radius: var(--radius-md);"
+                     onerror="handleImageError(this)">
+                <div style="flex: 1;">
+                    <div style="font-weight: 600;">${p.name}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.875rem;">${p.category_name}</div>
+                    <div style="margin-top: 0.5rem;">
+                        <span style="font-weight: 700; color: var(--primary-color);">${formatPrice(p.price_per_unit)}</span>
+                        <span style="color: var(--text-secondary); margin-left: 1rem;">${p.quantity_available} ${p.unit} available</span>
+                    </div>
+                </div>
+                <div>
+                    <span style="padding: 0.25rem 0.75rem; background: ${p.listing_status === 'active' ? 'var(--success-color)' : 'var(--text-secondary)'}; color: white; border-radius: 999px; font-size: 0.75rem;">
+                        ${p.listing_status}
+                    </span>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading products:', error);
+    }
+}
+
+async function loadOrders() {
+    try {
+        const response = await fetchOrders();
+        const orders = response.results || [];
+        
+        document.getElementById('total-orders').textContent = orders.length;
+        
+        const container = document.getElementById('orders-list');
+        if (orders.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-secondary);">No orders yet.</p>';
+            return;
+        }
+        
+        container.innerHTML = orders.map(order => `
+            <div class="order-card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                    <div>
+                        <div style="font-weight: 700;">Order #${order.order_number}</div>
+                        <div style="color: var(--text-secondary); font-size: 0.875rem;">${formatDate(order.created_at)}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 700; color: var(--primary-color);">${formatPrice(order.total_amount)}</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">${order.payment_status}</div>
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: 1rem;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">${order.product_name}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.875rem;">Quantity: ${order.quantity_ordered} ${order.unit}</div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    ${order.order_status === 'pending' ? `
+                        <button class="btn btn-primary btn-sm" onclick="confirmOrderAction('${order.id}')">Confirm Order</button>
+                    ` : ''}
+                    <span style="padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius-md); font-size: 0.875rem;">
+                        Status: ${order.order_status}
+                    </span>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading orders:', error);
+    }
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+    
+    event.target.classList.add('active');
+    document.getElementById(`${tab}-tab`).style.display = 'block';
+}
+
+async function confirmOrderAction(orderId) {
+    if (!confirmAction('Confirm this order?')) return;
+    
+    try {
+        showLoading();
+        await confirmOrder(orderId);
+        await loadOrders();
+        hideLoading();
+        showToast('Order confirmed!', 'success');
+    } catch (error) {
+        hideLoading();
+        showToast('Failed to confirm order', 'error');
+    }
+}
+</script>
+{% endblock %}

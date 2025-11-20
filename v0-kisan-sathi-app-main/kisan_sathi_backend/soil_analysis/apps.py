@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class SoilAnalysisConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'soil_analysis'
+    verbose_name = 'SoilSense - AI Soil Analysis'

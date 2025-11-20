@@ -36,7 +36,7 @@ export default function LandingPage() {
               Kisan Sathi helps Karnataka farmers make better decisions with real-time weather updates, market prices,
               government schemes, and AI-powered crop health monitoring.
             </p>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <Link href="/signup">
                 <Button size="lg" className="bg-primary hover:bg-primary/90">
                   Get Started
@@ -61,6 +61,12 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
             {
+              title: "Farm Management",
+              description: "Track expenses, income, inventory & profit for your farm",
+              icon: "🌾",
+              link: "/farm-management",
+            },
+            {
               title: "Weather Updates",
               description: "Real-time weather forecasts and alerts for your region",
               icon: "🌤️",
@@ -76,27 +82,36 @@ export default function LandingPage() {
               icon: "📋",
             },
             {
-              title: "AI Crop Doctor",
+              title: "AI Crop Detector",
               description: "Identify crop diseases with image recognition",
               icon: "🔬",
-            },
-            {
-              title: "Marketplace",
-              description: "Buy and sell agricultural products directly",
-              icon: "🛒",
             },
             {
               title: "AI Chatbot",
               description: "Get farming advice and tips 24/7",
               icon: "💬",
+              link: "/chatbot",
             },
-          ].map((feature, idx) => (
-            <Card key={idx} className="p-6 hover:shadow-lg transition-shadow">
-              <div className="text-4xl mb-4">{feature.icon}</div>
-              <h4 className="text-xl font-semibold mb-2 text-foreground">{feature.title}</h4>
-              <p className="text-muted-foreground">{feature.description}</p>
-            </Card>
-          ))}
+          ].map((feature, idx) => {
+            const CardContent = (
+              <Card key={idx} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="text-4xl mb-4">{feature.icon}</div>
+                <h4 className="text-xl font-semibold mb-2 text-foreground">{feature.title}</h4>
+                <p className="text-muted-foreground">{feature.description}</p>
+                {feature.link && (
+                  <Button className="mt-4 w-full" variant="outline">
+                    Visit {feature.title}
+                  </Button>
+                )}
+              </Card>
+            )
+            
+            return feature.link ? (
+              <Link key={idx} href={feature.link}>
+                {CardContent}
+              </Link>
+            ) : CardContent
+          })}
         </div>
       </section>
 

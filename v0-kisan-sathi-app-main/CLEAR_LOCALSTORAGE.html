@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear LocalStorage</title>
+</head>
+<body>
+    <h1>Clear LocalStorage</h1>
+    <button onclick="clearStorage()">Clear All LocalStorage</button>
+    <p id="result"></p>
+    
+    <script>
+        function clearStorage() {
+            try {
+                localStorage.clear();
+                document.getElementById('result').innerHTML = 'LocalStorage cleared! Now go back to <a href="http://localhost:3000/dashboard">Dashboard</a>';
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

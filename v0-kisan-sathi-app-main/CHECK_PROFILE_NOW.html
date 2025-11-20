@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile Diagnostic</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+        .section { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .warning { color: orange; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f0f0f0; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Profile Diagnostic Tool</h1>
+    
+    <div class="section">
+        <h2>Step 1: Check localStorage</h2>
+        <button onclick="checkLocalStorage()">Check localStorage</button>
+        <div id="localStorage-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 2: Clear Everything</h2>
+        <button onclick="clearEverything()">Clear localStorage & Reload</button>
+    </div>
+
+    <div class="section">
+        <h2>Step 3: Test Login API</h2>
+        <button onclick="testLogin()">Test Login API</button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 4: Test Profile API</h2>
+        <button onclick="testProfile()">Test Profile API</button>
+        <div id="profile-result"></div>
+    </div>
+
+    <script>
+        function checkLocalStorage() {
+            const resultEl = document.getElementById('localStorage-result');
+            resultEl.innerHTML = '<h3>localStorage Contents:</h3>';
+            
+            const user = localStorage.getItem('kisan-sathi-user');
+            const token = localStorage.getItem('kisan-sathi-access');
+            
+            if (!user) {
+                resultEl.innerHTML += '<p class="error">❌ No user data found!</p>';
+                resultEl.innerHTML += '<p>You need to login first.</p>';
+            } else {
+                try {
+                    const userData = JSON.parse(user);
+                    resultEl.innerHTML += '<p class="success">✅ User data found!</p>';
+                    resultEl.innerHTML += '<pre>' + JSON.stringify(userData, null, 2) + '</pre>';
+                    
+                    // Check if it has all required fields
+                    const requiredFields = ['first_name', 'last_name', 'village', 'taluk', 'land_size'];
+                    const missingFields = requiredFields.filter(field => !userData.hasOwnProperty(field));
+                    
+                    if (missingFields.length > 0) {
+                        resultEl.innerHTML += '<p class="error">❌ Missing fields: ' + missingFields.join(', ') + '</p>';
+                        resultEl.innerHTML += '<p class="warning">⚠️ You need to logout and login again!</p>';
+                    } else {
+                        resultEl.innerHTML += '<p class="success">✅ All fields present!</p>';
+                    }
+                } catch (e) {
+                    resultEl.innerHTML += '<p class="error">❌ Error parsing user data: ' + e.message + '</p>';
+                }
+            }
+            
+            if (!token) {
+                resultEl.innerHTML += '<p class="error">❌ No auth token found!</p>';
+            } else {
+                resultEl.innerHTML += '<p class="success">✅ Auth token found: ' + token.substring(0, 20) + '...</p>';
+            }
+        }
+
+        function clearEverything() {
+            if (confirm('This will clear all localStorage and reload the page. Continue?')) {
+                localStorage.clear();
+                alert('localStorage cleared! Redirecting to login...');
+                window.location.href = 'http://localhost:3000/login';
+            }
+        }
+
+        async function testLogin() {
+            const resultEl = document.getElementById('login-result');
+            resultEl.innerHTML = '<p>Testing login API...</p>';
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/auth/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone: '+916366673457',
+                        password: 'Bannu@123'
+                    })
+                });
+                
+                resultEl.innerHTML += '<p>Response Status: ' + response.status + '</p>';
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultEl.innerHTML += '<p class="success">✅ Login successful!</p>';
+                    resultEl.innerHTML += '<h4>Farmer Data Received:</h4>';
+                    resultEl.innerHTML += '<pre>' + JSON.stringify(data.data.farmer, null, 2) + '</pre>';
+                    
+                    // Check if farmer has all fields
+                    const farmer = data.data.farmer;
+                    const requiredFields = ['first_name', 'last_name', 'village', 'taluk', 'land_size', 'district'];
+                    const missingFields = requiredFields.filter(field => !farmer.hasOwnProperty(field));
+                    
+                    if (missingFields.length > 0) {
+                        resultEl.innerHTML += '<p class="error">❌ Backend missing fields: ' + missingFields.join(', ') + '</p>';
+                        resultEl.innerHTML += '<p class="warning">⚠️ Backend needs to be restarted!</p>';
+                    } else {
+                        resultEl.innerHTML += '<p class="success">✅ Backend returns all fields!</p>';
+                        resultEl.innerHTML += '<p class="success">✅ Name: ' + farmer.first_name + ' ' + farmer.last_name + '</p>';
+                        resultEl.innerHTML += '<p class="success">✅ Village: ' + farmer.village + '</p>';
+                        resultEl.innerHTML += '<p class="success">✅ District: ' + farmer.district + '</p>';
+                    }
+                } else {
+                    const errorText = await response.text();
+                    resultEl.innerHTML += '<p class="error">❌ Login failed: ' + errorText + '</p>';
+                }
+            } catch (error) {
+                resultEl.innerHTML += '<p class="error">❌ Error: ' + error.message + '</p>';
+                resultEl.innerHTML += '<p class="warning">⚠️ Make sure backend is running!</p>';
+            }
+        }
+
+        async function testProfile() {
+            const resultEl = document.getElementById('profile-result');
+            const token = localStorage.getItem('kisan-sathi-access');
+            
+            if (!token) {
+                resultEl.innerHTML = '<p class="error">❌ No token found! Login first.</p>';
+                return;
+            }
+            
+            resultEl.innerHTML = '<p>Testing profile API...</p>';
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/farmers/profile/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                resultEl.innerHTML += '<p>Response Status: ' + response.status + '</p>';
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultEl.innerHTML += '<p class="success">✅ Profile API works!</p>';
+                    resultEl.innerHTML += '<pre>' + JSON.stringify(data.data || data, null, 2) + '</pre>';
+                } else {
+                    const errorText = await response.text();
+                    resultEl.innerHTML += '<p class="error">❌ Profile API failed: ' + errorText + '</p>';
+                }
+            } catch (error) {
+                resultEl.innerHTML += '<p class="error">❌ Error: ' + error.message + '</p>';
+            }
+        }
+
+        // Auto-check on load
+        window.onload = function() {
+            checkLocalStorage();
+        };
+    </script>
+</body>
+</html>

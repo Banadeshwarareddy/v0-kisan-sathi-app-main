@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Profile API</title>
+</head>
+<body>
+    <h1>Profile API Test</h1>
+    <button onclick="testProfile()">Test Profile API</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testProfile() {
+            const resultEl = document.getElementById('result');
+            resultEl.textContent = 'Testing...';
+            
+            try {
+                // Get token from localStorage
+                const token = localStorage.getItem('kisan-sathi-access');
+                
+                if (!token) {
+                    resultEl.textContent = 'ERROR: No token found!\n\nPlease login first at http://localhost:3000/login';
+                    return;
+                }
+                
+                resultEl.textContent = 'Token found: ' + token.substring(0, 20) + '...\n\nCalling API...';
+                
+                // Call profile API
+                const response = await fetch('http://127.0.0.1:8000/api/farmers/profile/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                resultEl.textContent += '\n\nResponse Status: ' + response.status;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultEl.textContent += '\n\nResponse Data:\n' + JSON.stringify(data, null, 2);
+                    
+                    // Check the structure
+                    const profile = data.data || data;
+                    resultEl.textContent += '\n\n=== PROFILE INFO ===';
+                    resultEl.textContent += '\nName: ' + profile.first_name + ' ' + profile.last_name;
+                    resultEl.textContent += '\nPhone: ' + profile.phone;
+                    resultEl.textContent += '\nEmail: ' + profile.email;
+                    resultEl.textContent += '\nVillage: ' + profile.village;
+                    resultEl.textContent += '\nDistrict: ' + profile.district;
+                    resultEl.textContent += '\nLand Size: ' + profile.land_size;
+                } else {
+                    const errorText = await response.text();
+                    resultEl.textContent += '\n\nERROR Response:\n' + errorText;
+                }
+            } catch (error) {
+                resultEl.textContent += '\n\nERROR: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

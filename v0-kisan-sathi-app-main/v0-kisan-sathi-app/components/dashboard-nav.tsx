@@ -6,10 +6,12 @@ import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
+  { href: "/farm-management", label: "Farm Management", icon: "🌾" },
   { href: "/weather", label: "Weather", icon: "🌤️" },
   { href: "/mandi-prices", label: "Mandi Prices", icon: "📈" },
   { href: "/schemes", label: "Schemes", icon: "📋" },
-  { href: "/crop-doctor", label: "Crop Doctor", icon: "🔬" },
+  { href: "/crop-doctor", label: "AI Crop Detector", icon: "🔬" },
+  { href: "/soil-analysis", label: "AI Soil Analyzer", icon: "🧪" },
   { href: "/marketplace", label: "Marketplace", icon: "🛒" },
   { href: "/chatbot", label: "AI Assistant", icon: "💬" },
   { href: "/farming-tips", label: "Tips", icon: "💡" },

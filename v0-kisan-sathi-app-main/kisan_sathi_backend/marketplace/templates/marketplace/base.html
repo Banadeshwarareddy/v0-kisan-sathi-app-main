@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Kisan Marketplace{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'marketplace/css/marketplace.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'marketplace:home' %}">
+                    <span class="logo">🌾</span>
+                    <span class="brand-name">Kisan Marketplace</span>
+                </a>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="nav-search">
+                <input type="text" id="global-search" placeholder="Search for crops, farmers..." class="search-input">
+                <button class="search-btn" onclick="performGlobalSearch()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="nav-links">
+                <a href="{% url 'marketplace:home' %}" class="nav-link">Home</a>
+                <a href="{% url 'marketplace:products' %}" class="nav-link">Products</a>
+                <a href="{% url 'marketplace:cart' %}" class="nav-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    Cart <span id="cart-count" class="badge">0</span>
+                </a>
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="nav-link dropdown-toggle">
+                            {{ user.first_name|default:user.email }}
+                        </button>
+                        <div class="dropdown-menu">
+                            {% if user.farmer_profile %}
+                                <a href="{% url 'marketplace:farmer_dashboard' %}" class="dropdown-item">Farmer Dashboard</a>
+                            {% endif %}
+                            {% if user.buyer_profile %}
+                                <a href="{% url 'marketplace:buyer_dashboard' %}" class="dropdown-item">My Orders</a>
+                            {% endif %}
+                            <a href="{% url 'marketplace:wishlist' %}" class="dropdown-item">Wishlist</a>
+                            <a href="/logout/" class="dropdown-item">Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="/login/" class="nav-link btn-primary">Login</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>About Us</h4>
+                    <p>Connecting farmers directly with buyers for fresh, quality produce.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{% url 'marketplace:products' %}">Browse Products</a></li>
+                        <li><a href="#">Become a Seller</a></li>
+                        <li><a href="#">Help & Support</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <p>Email: support@kisanmarket.com</p>
+                    <p>Phone: +91 1800-XXX-XXXX</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Kisan Marketplace. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Base JavaScript -->
+    <script src="{% static 'marketplace/js/utils.js' %}"></script>
+    <script src="{% static 'marketplace/js/api.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

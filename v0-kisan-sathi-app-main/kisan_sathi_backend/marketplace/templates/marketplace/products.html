@@ -1,0 +1,316 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Browse Products - Kisan Marketplace{% endblock %}
+
+{% block extra_css %}
+<style>
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    margin: 0.25rem;
+}
+
+.filter-chip button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.sort-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.sort-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-md);
+    min-width: 200px;
+    margin-top: 0.5rem;
+    z-index: 100;
+}
+
+.sort-dropdown:hover .sort-menu {
+    display: block;
+}
+
+.sort-option {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sort-option:hover {
+    background: var(--bg-secondary);
+}
+
+.sort-option.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 3rem;
+}
+
+.pagination button {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination .page-number {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+.pagination .page-number.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.mobile-filter-toggle {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .filters-sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s;
+        overflow-y: auto;
+    }
+    
+    .filters-sidebar.open {
+        left: 0;
+    }
+    
+    .mobile-filter-toggle {
+        display: block;
+    }
+    
+    .filter-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+    
+    .filter-overlay.open {
+        display: block;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">Browse Products</h1>
+        <p style="color: var(--text-secondary);">Fresh crops directly from verified farmers</p>
+    </div>
+
+    <!-- Active Filters & Sort -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div style="flex: 1;">
+            <button class="btn btn-outline btn-sm mobile-filter-toggle" onclick="toggleFilters()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="4" y1="21" x2="4" y2="14"></line>
+                    <line x1="4" y1="10" x2="4" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12" y2="3"></line>
+                    <line x1="20" y1="21" x2="20" y2="16"></line>
+                    <line x1="20" y1="12" x2="20" y2="3"></line>
+                </svg>
+                Filters
+            </button>
+            <div id="active-filters" style="display: inline-block;"></div>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="color: var(--text-secondary); font-size: 0.875rem;" id="results-count">Loading...</span>
+            
+            <div class="sort-dropdown">
+                <button class="btn btn-outline btn-sm">
+                    Sort By
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <div class="sort-menu">
+                    <div class="sort-option" onclick="applySort('relevance')">Relevance</div>
+                    <div class="sort-option" onclick="applySort('price_low')">Price: Low to High</div>
+                    <div class="sort-option" onclick="applySort('price_high')">Price: High to Low</div>
+                    <div class="sort-option" onclick="applySort('rating')">Highest Rated</div>
+                    <div class="sort-option" onclick="applySort('newest')">Newest First</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Overlay (Mobile) -->
+    <div class="filter-overlay" onclick="toggleFilters()"></div>
+
+    <!-- Main Content Grid -->
+    <div class="products-section">
+        <!-- Filters Sidebar -->
+        <aside class="filters-sidebar" id="filters-sidebar">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.25rem; font-weight: 700;">Filters</h3>
+                <button class="btn btn-sm btn-outline" onclick="clearAllFilters()">Clear All</button>
+            </div>
+
+            <!-- Search -->
+            <div class="filter-section">
+                <h3>Search</h3>
+                <input type="text" id="search-input" placeholder="Search products..." 
+                       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md);"
+                       onkeyup="debounceSearch()">
+            </div>
+
+            <!-- Categories -->
+            <div class="filter-section">
+                <h3>Category</h3>
+                <div id="category-filters"></div>
+            </div>
+
+            <!-- Price Range -->
+            <div class="filter-section">
+                <h3>Price Range</h3>
+                <div class="price-range">
+                    <input type="number" id="min-price" placeholder="Min" class="price-input" onchange="applyFilters()">
+                    <span>-</span>
+                    <input type="number" id="max-price" placeholder="Max" class="price-input" onchange="applyFilters()">
+                </div>
+            </div>
+
+            <!-- Quality Grade -->
+            <div class="filter-section">
+                <h3>Quality</h3>
+                <div class="filter-option">
+                    <input type="checkbox" id="quality-premium" value="premium" onchange="applyFilters()">
+                    <label for="quality-premium">Premium</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="quality-a" value="grade_a" onchange="applyFilters()">
+                    <label for="quality-a">Grade A</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="quality-b" value="grade_b" onchange="applyFilters()">
+                    <label for="quality-b">Grade B</label>
+                </div>
+            </div>
+
+            <!-- Certifications -->
+            <div class="filter-section">
+                <h3>Certifications</h3>
+                <div class="filter-option">
+                    <input type="checkbox" id="organic" onchange="applyFilters()">
+                    <label for="organic">🌱 Organic Certified</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="fssai" onchange="applyFilters()">
+                    <label for="fssai">✓ FSSAI Approved</label>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="filter-section">
+                <h3>Location</h3>
+                <select id="state-filter" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 0.5rem;" onchange="applyFilters()">
+                    <option value="">All States</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                    <option value="Kerala">Kerala</option>
+                </select>
+                <input type="text" id="district-filter" placeholder="District" 
+                       style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm);"
+                       onchange="applyFilters()">
+            </div>
+
+            <!-- Availability -->
+            <div class="filter-section">
+                <h3>Availability</h3>
+                <div class="filter-option">
+                    <input type="checkbox" id="in-stock" checked onchange="applyFilters()">
+                    <label for="in-stock">In Stock Only</label>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Products Grid -->
+        <div>
+            <div id="products-container" class="products-grid">
+                <!-- Loading skeletons -->
+                <div class="loading-skeleton" style="height: 400px; background: #f3f4f6; border-radius: 0.75rem; animation: pulse 1.5s infinite;"></div>
+                <div class="loading-skeleton" style="height: 400px; background: #f3f4f6; border-radius: 0.75rem; animation: pulse 1.5s infinite;"></div>
+                <div class="loading-skeleton" style="height: 400px; background: #f3f4f6; border-radius: 0.75rem; animation: pulse 1.5s infinite;"></div>
+                <div class="loading-skeleton" style="height: 400px; background: #f3f4f6; border-radius: 0.75rem; animation: pulse 1.5s infinite;"></div>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination-container" class="pagination" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'marketplace/js/products.js' %}"></script>
+{% endblock %}
